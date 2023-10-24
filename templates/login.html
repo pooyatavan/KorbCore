@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="empty_space"></div>
+<div class="container">
+   <div class="frame">
+      <a class="frame_title">LOG IN</a>
+      <form action="" method="POST">
+         {{ form.hidden_tag() }}
+         {{ form.email() }}
+         {{ form.password() }}
+         <div class="captchacodeframe">
+            {{ form.code() }}
+            <img src="/static/captcha/{{session.registerip}}.png">
+            {{ form.reloadcode() }}
+         </div>
+         {{ form.login() }}
+      </form>
+      <a class="link" href="/recovery">Forgot your account password?</a>
+      <a class="link" href="/register">Create account</a>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+         {% if messages %}
+            {% for category, message in messages %}
+               <div class="{{ category }}">
+                  {{ message }}
+               </div>
+            {% endfor %}
+         {% endif %}
+      {% endwith %}
+   </div>
+</div>
+{% endblock content %}
