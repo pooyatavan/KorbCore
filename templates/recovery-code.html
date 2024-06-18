@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container">
+   <div class="frame">
+      <div class="login">
+         <form action="" method="post">
+            <a class="frame_title">Reset password</a>
+            <a class="detail">enter your code</a>
+            {{ form.hidden_tag() }}
+            {{ form.code() }}
+            {{ form.submit() }}
+         </form>
+         {% with messages = get_flashed_messages(with_categories=true) %}
+         {% if messages %}
+            {% for category, message in messages %}
+               <div class="{{ category }}">
+                  {{ message }}
+               </div>
+            {% endfor %}
+         {% endif %}
+      {% endwith %}
+      </div>
+   </div>
+</div>
+{% endblock content %}

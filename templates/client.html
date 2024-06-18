@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block content %}
+
+{% for row in news %}
+    {% if row[5] == "client" %}
+      <div class="articlecontainer">
+        <div class="articlebg" style="background-image: url('static/img/content/{{ row[6] }}.jpg');">
+          <div class="overarticle">
+            <a>{{ row[1] }}</a><br>
+            <p>توجه داشته باشید اکانت خود را در اختیار دوستانتان قرار ندهید</p>
+          </div>
+        </div>
+        {{ row[4] | safe }}
+      </div>
+  {% endif %}
+{% endfor %}
+
+{% endblock content %}
