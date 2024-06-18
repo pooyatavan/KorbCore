@@ -1,0 +1,74 @@
+.admintextbox[type="text"], [type="password"] {
+    display: block;
+    text-align: left;
+    padding: 10px 10px;
+    width: 300px;
+    height: 50px;
+    outline: none;
+    font-family: regular;
+    background: transparent;
+    color: white;
+    transition: 0.3s;
+    font-size: 12px;
+    background-color: #202020;
+    border: 1px solid #dd922f;
+    margin-top: 15px;
+  }
+
+  .adminbtn {
+    position: relative;
+    background-color: #fe8e2d;
+    color: #ffffff;
+    width: 300px;
+    height: 55px;
+    font-family: regular;
+    font-size: 16px;
+    transition: 0.3s;
+    padding: 10px 20px 10px 20px;
+    text-decoration: none;
+    margin: auto;
+    display: block;
+    border: hidden;
+    border-radius: 3px;
+  }
+  
+  .adminbtn:hover {
+    background-color: #f8821a;
+    cursor: pointer;
+  }
+
+  .adminselect {
+    display: block;
+    width: 300px;
+    height: 50px;
+    font-family: regular;
+    background-color: #202020;
+    border: 1px solid #dd922f;
+    color: #787c86;
+    transition: 0.3s;
+    margin-top: 15px;
+    text-align: left;
+    padding: 10px 10px;
+  }
+  
+  .adminselect::placeholder {
+    color: #787c86;
+    text-align: left;
+  }
+  
+  select:focus {
+    background-color: #1c1c20;
+    border: 1px solid #787c86;
+  }
+
+  .admindetail {
+    background-color: #202020;
+    border: 1px solid #dd922f;
+  }
+
+  .file{
+    width: 300px;
+    height: 50px;
+    margin-bottom: 10px;
+    font-family: regular;
+  }
