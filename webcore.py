@@ -11,13 +11,16 @@ LOG.logo()
 Captcha.RemoveAllCaptchas()
 LOG.clearlogfile()
 
-from modules.FlaskApp import app, FlaskpApp
+from modules.FlaskApp import app, FlaskpApp, FlaskSetup
 from modules.ConfigReader import Config
 from modules.strings import Console
-from modules.network import network
+from modules.tools import network
 
 try:
-    FlaskpApp()
+    if Config.read()['flask']['setup'] == "enable":
+        FlaskSetup()
+    else:
+        FlaskpApp()
 except:
     LOG.error(Console.FlaskError.value)
 else:
