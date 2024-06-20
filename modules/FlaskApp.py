@@ -6,7 +6,7 @@ from suds.client import Client
 from werkzeug.utils import secure_filename
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from flask_socketio import SocketIO, emit, join_room, leave_room, send
-import os, datetime
+import datetime
 
 from modules.sql import SQL
 from modules.log import LOG
@@ -23,50 +23,31 @@ from modules.Realmlist import RealmCheck, realmlists
 from modules.trade import Trade
 from modules.RecruitFreind import RF
 from modules.skill import SkillStructure
-from modules.network import IpFormatCheck
+from modules.tools import key, restart, IpFormatCheck
 
 app = Flask(__name__, static_folder='../static', template_folder='../templates')
-
-try:
-    socketio = SocketIO()
-    socketio.init_app(app)
-except:
-    LOG.error(Console.SocketError.value)
+socketio = SocketIO()
+socketio.init_app(app)
 
 if bool(Config.read()['flask']['debug']) == True:
     app.secret_key = "123456"
 else:
-    app.secret_key = str(os.urandom(12).hex)
+    app.secret_key = key()
 
-accounts = SQL.ReadAccounts()
-storeitems = SQL.StoreItems()
-redeemcodes = SQL.ReadRedeemCode()
-navlinks = SQL.ReadLinks()
-statics, blogs, homewidth = SQL.ReadArtciles()
-versions = SQL.ReadVersions()
-bugs = SQL.ReadBugs()
+if Config.read()['flask']['setup'] == "disable":
+    accounts = SQL.ReadAccounts()
+    storeitems = SQL.StoreItems()
+    redeemcodes = SQL.ReadRedeemCode()
+    navlinks = SQL.ReadLinks()
+    statics, blogs, homewidth = SQL.ReadArtciles()
+    versions = SQL.ReadVersions()
+    bugs = SQL.ReadBugs()
+else:
+    versions = []
+    LOG.debug(Console.Setup.value)
+
 BugKind = ['Choose...', 'Spell', 'Boss', 'Quest', 'Item']
 users = {}
-
-class SetupForm(FlaskForm):
-    # CMS CORE SERVER
-    CMSServerName = StringField(render_kw={"placeholder": Forms.ServerName.value})
-    CMSServerIP = StringField(render_kw={"placeholder": Forms.ServerIP.value})
-    CMSPort = StringField(render_kw={"placeholder": Forms.CMSPort.value})
-
-    #CMS SQL
-    SQLServerIP = StringField(render_kw={"placeholder": Forms.ServerIP.value})
-    SQLServerPORT = StringField(render_kw={"placeholder": Forms.SQLServerPORT.value})
-    SQLUsername = StringField(render_kw={"placeholder": Forms.SQLUsername.value})
-    SQLPaswword = StringField(render_kw={"placeholder": Forms.SQLPassword.value})
-
-    # CORE SQL
-    CoreSQLServerIP = StringField(render_kw={"placeholder": Forms.CoreSQLServerIP.value})
-    CoreSQLServerPORT = StringField(render_kw={"placeholder": Forms.CoreSQLServerPORT.value})
-    CoreSQLUsername = StringField(render_kw={"placeholder": Forms.CoreSQLUsername.value})
-    CoreSQLPaswword = StringField(render_kw={"placeholder": Forms.CoreSQLPaswword.value})
-
-    Submit = SubmitField(label=Forms.Submit.value)
 
 class LoginForm(FlaskForm):
     email = StringField(render_kw={"placeholder": Forms.email.value, "class": "textbox", "type": "text"})
@@ -159,30 +140,27 @@ class ReportBug(FlaskForm):
 class forum(FlaskForm):
     newtopic = ""
 
+class SetupForm(FlaskForm):
+    # CMS CORE SERVER
+    CMSServerName = StringField(render_kw={"placeholder": Forms.ServerName.value})
+    CMSServerIP = StringField(render_kw={"placeholder": Forms.ServerIP.value})
+    CMSPort = StringField(render_kw={"placeholder": Forms.CMSPort.value})
+
+    #CMS SQL
+    SQLServerIP = StringField(render_kw={"placeholder": Forms.ServerIP.value})
+    SQLServerPORT = StringField(render_kw={"placeholder": Forms.SQLServerPORT.value})
+    SQLUsername = StringField(render_kw={"placeholder": Forms.SQLUsername.value})
+    SQLPaswword = StringField(render_kw={"placeholder": Forms.SQLPassword.value})
+
+    # CORE SQL
+    CoreSQLServerIP = StringField(render_kw={"placeholder": Forms.CoreSQLServerIP.value})
+    CoreSQLServerPORT = StringField(render_kw={"placeholder": Forms.CoreSQLServerPORT.value})
+    CoreSQLUsername = StringField(render_kw={"placeholder": Forms.CoreSQLUsername.value})
+    CoreSQLPaswword = StringField(render_kw={"placeholder": Forms.CoreSQLPaswword.value})
+
+    Submit = SubmitField(label=Forms.Submit.value)
+
 def FlaskpApp():
-    @app.route("/setup")
-    def setup():
-        form = SetupForm()
-        if form.validate_on_submit():
-            cmsservername = form.CMSServerName.data
-            cmsserverip = form.CMSServerIP.data
-            cmsport = form.CMSPort.data
-
-            sqlip = form.SQLServerIP.data
-            sqlport = form.SQLServerPORT.data
-            sqlusername = form.SQLUsername.data
-            sqlpassword = form.SQLPaswword.data
-
-            coresqlip = form.CoreSQLServerIP.data
-            coresqlport = form.CoreSQLServerPORT.data
-            coresqlusername = form.CoreSQLUsername.data
-            coresqlpassword = form.CoreSQLPaswword.data
-
-            qa = [cmsserverip, sqlip, coresqlip]
-            print(qa)
-            #if IpFormatCheck()
-        return render_template('setup.html', form=form)
-    
     #home page and defualt page
     @app.route("/", methods=['GET', 'POST'])
     @app.route('/home', methods=['GET', 'POST'])
@@ -190,7 +168,7 @@ def FlaskpApp():
         # check for setup  cms
         if Config.read()['flask']['setup'] == "on":
             return render_template('setup.html')
-        if Config.read()['main']['maintence'] == "on":
+        if Config.read()['flask']['maintence'] == "on":
             if session['rank'] < 3:
                 return render_template('maintence.html')
             else:
@@ -741,3 +719,53 @@ def FlaskpApp():
             return redirect(url_for('login'))
         except:
              LOG.error(Console.ErrorSocket.value)
+
+def FlaskSetup():
+    @app.route("/", methods=['GET', 'POST'])
+    @app.route('/setup', methods=['GET', 'POST'])
+    def setup():
+        form = SetupForm()
+        if form.validate_on_submit():
+            Config.write('flask', 'setup', 'disable')
+            restart()
+        #     cmsservername = form.CMSServerName.data
+        #     cmsserverip = form.CMSServerIP.data
+        #     cmsport = form.CMSPort.data
+
+        #     sqlip = form.SQLServerIP.data
+        #     sqlport = form.SQLServerPORT.data
+        #     sqlusername = form.SQLUsername.data
+        #     sqlpassword = form.SQLPaswword.data
+
+        #     coresqlip = form.CoreSQLServerIP.data
+        #     coresqlport = form.CoreSQLServerPORT.data
+        #     coresqlusername = form.CoreSQLUsername.data
+        #     coresqlpassword = form.CoreSQLPaswword.data
+        #     if cmsservername or cmsserverip or cmsport or sqlip or sqlport or sqlusername or sqlpassword or coresqlip or coresqlport or coresqlusername or coresqlpassword == "":
+        #         pass
+        #     else:
+        #         ips = [cmsserverip, sqlip, coresqlip]
+        #         for ip in ips:
+        #             if IpFormatCheck(ip) == True:
+        #                 Config.write('flask', 'servername', cmsservername)
+        #                 Config.write('flask', 'ip', cmsserverip)
+        #                 Config.write('flask', 'port', cmsport)
+        #                 Config.write('flask', 'setup', 'disable')
+        #             else:
+        #                 flash(MSGList.WrongIPAddressFormat.value, "alert-error")
+        return render_template('setup.html', form=form)
+    
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return redirect(url_for('setup'))
+    app.register_error_handler(404, page_not_found)
+
+    @app.errorhandler(403)
+    def page_not_found(e):
+        return redirect(url_for('setup'))
+    app.register_error_handler(403, page_not_found)
+
+    @app.errorhandler(500)
+    def page_not_found(e):
+        return redirect(url_for('setup'))
+    app.register_error_handler(500, page_not_found)

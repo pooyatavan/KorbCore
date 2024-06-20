@@ -9,7 +9,7 @@ Captchas = {}
 
 class captcha():
     def __init__(self):
-        if Config.read()['captcha']['latin'] == "no":
+        if Config.read()['captcha']['latin'] == "disable":
             self.imageconfig = ImageCaptcha(width= int(Config.read()['captcha']['width']), height= int(Config.read()['captcha']['height']), fonts=['static/css/shabnam.woff'])
         else:
             self.imageconfig = ImageCaptcha(width= int(Config.read()['captcha']['width']), height= int(Config.read()['captcha']['height']))

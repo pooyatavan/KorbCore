@@ -5,8 +5,11 @@ from modules.sql import SQL
 from modules.log import LOG
 from modules.strings import Console
 
-realmlists = SQL.ReadRealms()
-
+if Config.read()['flask']['setup'] == "disable":
+    realmlists = SQL.ReadRealms()
+else:
+    realmlists = []
+    
 def RealmFlagCheck(flag):
     if int(flag) == 66:
         return "Offline"

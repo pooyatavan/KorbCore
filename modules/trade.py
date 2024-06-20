@@ -15,7 +15,8 @@ class trade():
         self.port = Config.read()['TC']['port']
         self.character_tarder = Config.read()['TC']['character_trader']
         try:
-            self.character_connection = mysql.connector.connect(host=self.host, database=self.database, user=self.username, password=self.password, port=self.port)
+            if Config.read()['flask']['setup'] == "disable":
+                self.character_connection = mysql.connector.connect(host=self.host, database=self.database, user=self.username, password=self.password, port=self.port)
         except:
             LOG.error(Console.ConnSQLError.value.format(ip=self.host))
 

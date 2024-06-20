@@ -51,6 +51,7 @@ class MSGList(Enum):
     EconomyTitle = 'Economy'
     BugNotSelected = 'you need to choose a bug first'
     CoreConnection = 'Error while SQL Connection'
+    WrongIPAddressFormat = 'Your ip address is wrong in fromat'
     
 class Forms(Enum):
     Token = 'Token'
@@ -111,7 +112,7 @@ class Console(Enum):
     LoginSuccess = 'Account {email} loged in from {ip}'
     RegisterSuccess = 'Registeration successfuly for {email}'
     RegisterFailed = 'Registeration Failed'
-    ConnSQLError = 'Error while connecting to TrinityCore SQL Server {ip}'
+    ConnSQLError = 'Error while connecting to SQL Server {ip}'
     ConnSQLSuccess = 'Connected to MySQL Server version {res}'
     RealmFailed = 'Connection failed for realm: {ip}'
     Vistors = 'Someone, visit with this ip address: {ip}'
@@ -130,6 +131,7 @@ class Console(Enum):
     NewMSG = '{username} send: {message}'
     ErrorSocket = 'Error while Logout'
     SocketError = 'Socket error while transmit message'
+    Setup = 'Setup is running for config'
 
 class SOAPCS(Enum):
     url = 'http://{ip}:7878'
