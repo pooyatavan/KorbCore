@@ -1,6 +1,9 @@
-import os, threading, sys, socket
+import os, threading, sys, socket, datetime, time, random
 from re import findall
 from subprocess import Popen, PIPE
+from string import ascii_uppercase
+
+rooms = {}
 
 def key():
     return str(os.urandom(12).hex)
@@ -38,3 +41,18 @@ def ping (host,ping_count):
             return True
         else:
             return False
+
+def GetDate():
+    return datetime.datetime.now().date()
+
+def TimeDo(start):
+    return round(time.perf_counter()-start, 2)
+
+def RandomeCode(length):
+    while True:
+        code = ""
+        for _ in range(length):
+            code += random.choice(ascii_uppercase)
+        if code not in rooms:
+            break
+    return code
