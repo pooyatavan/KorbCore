@@ -5,7 +5,7 @@ from modules.sql import SQL
 from modules.log import LOG
 from modules.strings import Console
 
-if Config.read()['flask']['setup'] == "disable":
+if Config.read()['core']['setup'] == "disable":
     realmlists = SQL.ReadRealms()
 else:
     realmlists = []

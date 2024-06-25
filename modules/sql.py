@@ -3,7 +3,7 @@
 from modules.ConfigReader import Config
 from modules.strings import Console, MSGList
 from modules.log import LOG
-from modules.getdate import TimeDo
+from modules.tools import TimeDo
 
 accounts = {}
 store = []
@@ -19,16 +19,17 @@ bugs = {}
 
 class sql():
     def __init__(self):
-        try:
-            self.webcore = mysql.connector.connect(host=Config.read()['webdb']['ip'],
-                database='webcore',
-                user=Config.read()['webdb']['username'],
-                password=Config.read()['webdb']['password'],
-                port=Config.read()['webdb']['port'])
-            self.cursor = self.webcore.cursor()
-        except:
-            LOG.error(Console.ConnSQLError.value.format(ip=Config.read()['webdb']['ip']))
-            sys.exit(1)
+        if Config.read()['core']['setup'] == "disable":
+            try:
+                self.webcore = mysql.connector.connect(host=Config.read()['webdb']['ip'],
+                    database='webcore',
+                    user=Config.read()['webdb']['username'],
+                    password=Config.read()['webdb']['password'],
+                    port=Config.read()['webdb']['port'])
+                self.cursor = self.webcore.cursor()
+            except:
+                LOG.error(Console.ConnSQLError.value.format(ip=Config.read()['webdb']['ip']))
+                sys.exit(1)
 
     def empty(self, value):
         if value == 0:

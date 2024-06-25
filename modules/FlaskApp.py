@@ -1,5 +1,5 @@
 ﻿from flask import Flask, render_template, request, redirect, url_for, session, make_response, flash
-from wtforms import StringField, SubmitField, SelectField, FileField
+from wtforms import StringField, SubmitField, SelectField, FileField, BooleanField
 from wtforms.widgets import TextArea
 from flask_wtf import FlaskForm
 from suds.client import Client
@@ -17,24 +17,24 @@ from modules.sms import SMS
 from modules.password import Password, recovery_codes
 from modules.strings import MSGList, Forms, Console, SOAPCS
 from modules.soap import SOAPC
-from modules.getdate import GetDate
 from modules.character import CharacterFinder
 from modules.Realmlist import RealmCheck, realmlists
 from modules.trade import Trade
 from modules.RecruitFreind import RF
 from modules.skill import SkillStructure
-from modules.tools import key, restart, IpFormatCheck
+from modules.tools import key, restart, IpFormatCheck, GetDate
+from modules.checks import Check
 
 app = Flask(__name__, static_folder='../static', template_folder='../templates')
 socketio = SocketIO()
 socketio.init_app(app)
 
-if bool(Config.read()['flask']['debug']) == True:
+if bool(Config.read()['core']['debug']) == True:
     app.secret_key = "123456"
 else:
     app.secret_key = key()
 
-if Config.read()['flask']['setup'] == "disable":
+if Config.read()['core']['setup'] == "disable":
     accounts = SQL.ReadAccounts()
     storeitems = SQL.StoreItems()
     redeemcodes = SQL.ReadRedeemCode()
@@ -110,28 +110,6 @@ class StoreForm(FlaskForm):
     select = SelectField()
     submit = SubmitField(label=Forms.Buy.value, render_kw={"class": "btn"})
 
-class AdminForm(FlaskForm):
-    # send sms to everyone
-    sendtext = SubmitField(label=Forms.Send.value, render_kw={"class": "btn"})
-    text_message = StringField(widget=TextArea())
-    
-    # admin post article
-    title = StringField(render_kw={"class": "subject", "style": "", "placeholder": Forms.TitlePost.value})
-    detail = StringField(widget=TextArea(), render_kw={"placeholder": Forms.DetailPost.value})
-    position = SelectField(choices=["HomeWidth", "article"])
-    post = SubmitField(label=Forms.Post.value, render_kw={"class": "btn"})
-    articlefile = FileField(render_kw={"class": "file"}, validators=[FileRequired(), FileAllowed(['jpg', 'png'], 'Images only!')])
-
-    # admin add item in Store
-    ItemTitle = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.ItemStore.value})
-    ItemDetail = StringField(widget=TextArea(), render_kw={"class": "admindetail", "placeholder": Forms.DetailPost.value})
-    ItemPrice = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.PriceItem.value})
-    ItemSubmit = SubmitField(label=Forms.ItemSubmit.value, render_kw={"class": "adminbtn"})
-    ItemKind = SelectField(render_kw={"class": "adminselect"}, choices=["Item", "Reputation", "Mount", "Gold", "Service", "Proffesions"])
-    file = FileField(render_kw={"class": "file"}, validators=[FileRequired(), FileAllowed(['jpg', 'png'], 'Images only!')])
-    ItemID = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.ItemID.value})
-    ItemVersion = SelectField(render_kw={"class": "adminselect"}, choices=versions)
-
 class ReportBug(FlaskForm):
     kindselect = SelectField(choices=BugKind)
     detail = (StringField(render_kw={"class": "textbox", "placeholder": Forms.DetailBug.value}))
@@ -145,19 +123,23 @@ class SetupForm(FlaskForm):
     CMSServerName = StringField(render_kw={"placeholder": Forms.ServerName.value})
     CMSServerIP = StringField(render_kw={"placeholder": Forms.ServerIP.value})
     CMSPort = StringField(render_kw={"placeholder": Forms.CMSPort.value})
-
     #CMS SQL
     SQLServerIP = StringField(render_kw={"placeholder": Forms.ServerIP.value})
     SQLServerPORT = StringField(render_kw={"placeholder": Forms.SQLServerPORT.value})
     SQLUsername = StringField(render_kw={"placeholder": Forms.SQLUsername.value})
     SQLPaswword = StringField(render_kw={"placeholder": Forms.SQLPassword.value})
-
     # CORE SQL
     CoreSQLServerIP = StringField(render_kw={"placeholder": Forms.CoreSQLServerIP.value})
     CoreSQLServerPORT = StringField(render_kw={"placeholder": Forms.CoreSQLServerPORT.value})
     CoreSQLUsername = StringField(render_kw={"placeholder": Forms.CoreSQLUsername.value})
     CoreSQLPaswword = StringField(render_kw={"placeholder": Forms.CoreSQLPaswword.value})
-
+    # SOAP
+    soapusername = StringField(render_kw={"placeholder": Forms.CoreSQLPaswword.value})
+    soappassword = StringField(render_kw={"placeholder": Forms.CoreSQLPaswword.value})
+    # Admin
+    adminusername = StringField(render_kw={"placeholder": Forms.CoreSQLPaswword.value})
+    adminpassword = StringField(render_kw={"placeholder": Forms.CoreSQLPaswword.value})
+    adminrepassword = StringField(render_kw={"placeholder": Forms.CoreSQLPaswword.value})
     Submit = SubmitField(label=Forms.Submit.value)
 
 def FlaskpApp():
@@ -166,9 +148,9 @@ def FlaskpApp():
     @app.route('/home', methods=['GET', 'POST'])
     def home():
         # check for setup  cms
-        if Config.read()['flask']['setup'] == "on":
+        if Config.read()['core']['setup'] == "on":
             return render_template('setup.html')
-        if Config.read()['flask']['maintence'] == "on":
+        if Config.read()['core']['maintence'] == "on":
             if session['rank'] < 3:
                 return render_template('maintence.html')
             else:
@@ -212,7 +194,7 @@ def FlaskpApp():
 
     @app.context_processor
     def inject_user():
-        if Config.read()['flask']['visitor'] == "yes":
+        if Config.read()['core']['visitor'] == "yes":
             try:
                 if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
                     LOG.debug(Console.Vistors.value.format(ip=request.environ['REMOTE_ADDR']))
@@ -604,6 +586,27 @@ def FlaskpApp():
     # admin page
     @app.route("/admin",methods=['POST', 'GET'])
     def admin():
+        class AdminForm(FlaskForm):
+            # send sms to everyone
+            sendtext = SubmitField(label=Forms.Send.value, render_kw={"class": "btn"})
+            text_message = StringField(widget=TextArea())
+            # admin post article
+            title = StringField(render_kw={"class": "subject", "style": "", "placeholder": Forms.TitlePost.value})
+            detail = StringField(widget=TextArea(), render_kw={"placeholder": Forms.DetailPost.value})
+            position = SelectField(choices=["HomeWidth", "article"])
+            post = SubmitField(label=Forms.Post.value, render_kw={"class": "btn"})
+            articlefile = FileField(render_kw={"class": "file"}, validators=[FileRequired(), FileAllowed(['jpg', 'png'], 'Images only!')])
+            # admin add item in Store
+            ItemTitle = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.ItemStore.value})
+            ItemDetail = StringField(widget=TextArea(), render_kw={"class": "admindetail", "placeholder": Forms.DetailPost.value})
+            ItemPrice = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.PriceItem.value})
+            ItemSubmit = SubmitField(label=Forms.ItemSubmit.value, render_kw={"class": "adminbtn"})
+            ItemKind = SelectField(render_kw={"class": "adminselect"}, choices=["Item", "Reputation", "Mount", "Gold", "Service", "Proffesions"])
+            file = FileField(render_kw={"class": "file"}, validators=[FileRequired(), FileAllowed(['jpg', 'png'], 'Images only!')])
+            ItemID = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.ItemID.value})
+            ItemVersion = SelectField(render_kw={"class": "adminselect"}, choices=versions)
+            #core
+            test = BooleanField(render_kw={"placeholder": "test"}, label="test", default=Check("debug"))
         form = AdminForm()
         if "email" in session:
             if session['rank'] == 3:
@@ -726,33 +729,32 @@ def FlaskSetup():
     def setup():
         form = SetupForm()
         if form.validate_on_submit():
-            Config.write('flask', 'setup', 'disable')
-            restart()
-        #     cmsservername = form.CMSServerName.data
-        #     cmsserverip = form.CMSServerIP.data
-        #     cmsport = form.CMSPort.data
+            cmsservername = form.CMSServerName.data
+            cmsserverip = form.CMSServerIP.data
+            cmsport = form.CMSPort.data
 
-        #     sqlip = form.SQLServerIP.data
-        #     sqlport = form.SQLServerPORT.data
-        #     sqlusername = form.SQLUsername.data
-        #     sqlpassword = form.SQLPaswword.data
+            sqlip = form.SQLServerIP.data
+            sqlport = form.SQLServerPORT.data
+            sqlusername = form.SQLUsername.data
+            sqlpassword = form.SQLPaswword.data
 
-        #     coresqlip = form.CoreSQLServerIP.data
-        #     coresqlport = form.CoreSQLServerPORT.data
-        #     coresqlusername = form.CoreSQLUsername.data
-        #     coresqlpassword = form.CoreSQLPaswword.data
-        #     if cmsservername or cmsserverip or cmsport or sqlip or sqlport or sqlusername or sqlpassword or coresqlip or coresqlport or coresqlusername or coresqlpassword == "":
-        #         pass
-        #     else:
-        #         ips = [cmsserverip, sqlip, coresqlip]
-        #         for ip in ips:
-        #             if IpFormatCheck(ip) == True:
-        #                 Config.write('flask', 'servername', cmsservername)
-        #                 Config.write('flask', 'ip', cmsserverip)
-        #                 Config.write('flask', 'port', cmsport)
-        #                 Config.write('flask', 'setup', 'disable')
-        #             else:
-        #                 flash(MSGList.WrongIPAddressFormat.value, "alert-error")
+            coresqlip = form.CoreSQLServerIP.data
+            coresqlport = form.CoreSQLServerPORT.data
+            coresqlusername = form.CoreSQLUsername.data
+            coresqlpassword = form.CoreSQLPaswword.data
+            if cmsservername or cmsserverip or cmsport or sqlip or sqlport or sqlusername or sqlpassword or coresqlip or coresqlport or coresqlusername or coresqlpassword == "":
+                flash(MSGList.EmptyFields.value, "alert-warning")
+            else:
+                ips = [cmsserverip, sqlip, coresqlip]
+                for ip in ips:
+                    if IpFormatCheck(ip) == True:
+                        Config.write('core', 'servername', cmsservername)
+                        Config.write('core', 'ip', cmsserverip)
+                        Config.write('core', 'port', cmsport)
+                        Config.write('core', 'setup', 'disable')
+                        restart()
+                    else:
+                        flash(MSGList.WrongIPAddressFormat.value, "alert-error")
         return render_template('setup.html', form=form)
     
     @app.errorhandler(404)

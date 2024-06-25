@@ -52,15 +52,19 @@ class captcha():
                 return False
 
     def RemoveAllCaptchas(self):
-        for filename in os.listdir(self.path):
-            file_path = os.path.join(self.path, filename)
-            try:
-                if os.path.isfile(file_path) or os.path.islink(file_path):
-                    os.unlink(file_path)
-                elif os.path.isdir(file_path):
-                    shutil.rmtree(file_path)
-            except Exception as e:
-                print('Failed to delete %s. Reason: %s' % (file_path, e))
-        LOG.info(Console.RemoveAllCaptchas.value)
+        dir = os.listdir(self.path) 
+        if len(dir) == 0: 
+            pass
+        else: 
+            for filename in os.listdir(self.path):
+                file_path = os.path.join(self.path, filename)
+                try:
+                    if os.path.isfile(file_path) or os.path.islink(file_path):
+                        os.unlink(file_path)
+                    elif os.path.isdir(file_path):
+                        shutil.rmtree(file_path)
+                except Exception as e:
+                    print('Failed to delete %s. Reason: %s' % (file_path, e))
+            LOG.info(Console.RemoveAllCaptchas.value)
 
 Captcha = captcha()
