@@ -6,7 +6,7 @@ In addition, thoroughly read through the issue tracker guide to ensure your repo
 # Submitting fixes
 Fixes are submitted as pull requests via Github.
 # In progress
-SSH(Mikrotik, UBNT), Report
+Economy, forum, blog
 # Requirement
 1. Mysql server
 2. mysql client like yog
