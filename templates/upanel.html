@@ -9,7 +9,6 @@
       <button class="tablinks" onclick="openCity(event, 'order')">ORDERS</button>
       <button class="tablinks" onclick="openCity(event, 'token')">BUY TOKEN</button>
     </div>
-    
     <div id="accountinfo" class="tabcontent">
       <div class="userinfo">
         <li><a>Fullname:</a><p>{{session.firstname}} {{session.lastname}}</p></li>
@@ -21,7 +20,6 @@
         <li><a>IP Address:</a><p>{{session.ip}}</p></li>
       </div>
     </div>
-
     <div id="redeemcode" class="tabcontent">
       <form action="" method="post">
         {{ form.hidden_tag() }}
@@ -29,7 +27,6 @@
         {{ form.redeemcode() }}
       </form>
     </div>
-
     <div id="invitefriend" class="tabcontent">
       <div class="rigthelements">
         <form action="" method="post">
@@ -39,7 +36,6 @@
         </form>
       </div>
     </div>
-
     <div id="changepassword" class="tabcontent">
       <form action="" method="post">
         {{ form.hidden_tag() }}
@@ -49,8 +45,7 @@
         {{ form.changepassword() }}
       </form>
     </div>
-
-    <div id="order" class="tabcontent">
+      <div id="order" class="tabcontent">
         {% if history|length %}
           <table class="customers">
             <tr>
@@ -72,22 +67,19 @@
             <a>Empty</a>
           </div>
         {% endif %}
-    </div>
-
+      </div>
     <div id="token" class="tabcontent">
       <form class="tokenform" action="{{url_for('upanel')}}" method="post">
         <div class="range">
           <img src="/static/img/coins-solid.png">
-          <p>توکن</p><a id="rangeValue">25</a><br/>
+          <p>Token</p><a id="rangeValue">25</a><br/>
           {{ form.hidden_tag() }}
           {{ form.token() }}
         </div>
         {{ form.buytoken() }}
       </form>
     </div>
-
   </div>
-
   <div class="userpanelmsg">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -99,5 +91,6 @@
       {% endif %}
     {% endwith %}
   </div>
+  <div class="divider"></div>
 </div>
 {% endblock content %}

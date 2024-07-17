@@ -14,7 +14,7 @@
          {{ form.repassword() }}
          <div class="captchacodeframe">
             {{ form.code() }}
-            <img src="/static/captcha/{{session.registerip}}.png">
+            <img style="filter: invert(1);" src="/static/captcha/{{session.registerip}}.png">
             {{ form.reloadcode() }}
          </div>
          {{ form.register() }}

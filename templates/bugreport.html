@@ -8,14 +8,15 @@
                 <span></span>
             </div>
         </div>
-        <div class="articlecontent" style="display: flex; align-items:center; justify-content:center;">
+        <div class="articlecontent">
+          {% if session['permission'] == "admin" %}
             <form class="bugreport" action="" method="POST">
                 {{ form.hidden_tag() }}
                 {{ form.kindselect() }}
                 {{ form.detail() }}
                 {{ form.submit() }}
             </form>
-            
+          {% endif %}
             <table class="customers">
                 <tr>
                   <th>kind</th>
@@ -23,7 +24,6 @@
                   <th>user</th>
                   <th>date</th>
                 </tr>
-                
                 {% for row in bugs %}
                   <tr>
                     <td>{{ row.kind }}</td>
