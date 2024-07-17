@@ -86,8 +86,8 @@ class Forms(Enum):
     TitlePost = 'Title'
     DetailPost = 'Detail'
     PostBug = 'Submit Bug'
-    DetailBug = 'Title'
-    ChooseBug = 'Choose'
+    DetailBug = '* Title'
+    ChooseBug = '* Choose'
     ItemStore= 'Title'
     ItemSubmit = 'Submit'
     PriceItem = "Price Item"
@@ -98,8 +98,8 @@ class Forms(Enum):
     CMSPort = "Server port number"
     SQLServerIP = 'SQL Server ip address'
     SQLServerPORT = 'SQL Server port'
-    SQLUsername = 'SQL Server  username'
-    SQLPassword = 'SQL Server  password'
+    SQLUsername = 'SQL Server username'
+    SQLPassword = 'SQL Server password'
     CoreSQLServerIP = 'CORE SQL Server ip address'
     CoreSQLServerPORT = 'CORE SQL Server port'
     CoreSQLUsername = 'CORE SQL Server  username'
@@ -132,6 +132,7 @@ class Console(Enum):
     ErrorSocket = 'Error while Logout'
     SocketError = 'Socket error while transmit message'
     Setup = 'Setup is running for config'
+    Status = '{object} is {status}'
 
 class SOAPCS(Enum):
     url = 'http://{ip}:7878'

@@ -26,8 +26,13 @@ from modules.tools import key, restart, IpFormatCheck, GetDate
 from modules.checks import Check
 
 app = Flask(__name__, static_folder='../static', template_folder='../templates')
-socketio = SocketIO()
-socketio.init_app(app)
+
+if bool(Config.read()['economy']['status']) == "True":
+    socketio = SocketIO()
+    socketio.init_app(app)
+    LOG.debug(Console.Status.value.format(object="economy", status="ON"))
+else:
+    LOG.debug(Console.Status.value.format(object="economy", status="Off"))
 
 if bool(Config.read()['core']['debug']) == True:
     app.secret_key = "123456"
@@ -48,6 +53,29 @@ else:
 
 BugKind = ['Choose...', 'Spell', 'Boss', 'Quest', 'Item']
 users = {}
+
+class AdminForm(FlaskForm):
+    # send sms to everyone
+    sendtext = SubmitField(label=Forms.Send.value, render_kw={"class": "btn"})
+    text_message = StringField(render_kw={"class": "admintextbox"}, widget=TextArea())
+    # admin post article
+    title = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.TitlePost.value})
+    detail = StringField(widget=TextArea(), render_kw={"class": "admintextbox", "placeholder": Forms.DetailPost.value})
+    position = SelectField(choices=["HomeWidth", "article"])
+    post = SubmitField(label=Forms.Post.value, render_kw={"class": "btn"})
+    articlefile = FileField(render_kw={"class": "file"}, validators=[FileRequired(), FileAllowed(['jpg', 'png'], 'Images only!')])
+    # admin add item in Store
+    ItemTitle = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.ItemStore.value})
+    ItemDetail = StringField(widget=TextArea(), render_kw={"class": "admindetail", "placeholder": Forms.DetailPost.value})
+    ItemPrice = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.PriceItem.value})
+    ItemSubmit = SubmitField(label=Forms.ItemSubmit.value, render_kw={"class": "adminbtn"})
+    ItemKind = SelectField(render_kw={"class": "adminselect"}, choices=["Item", "Reputation", "Mount", "Gold", "Service", "Proffesions"])
+    file = FileField(render_kw={"class": "file"}, validators=[FileRequired(), FileAllowed(['jpg', 'png'], 'Images only!')])
+    ItemID = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.ItemID.value})
+    ItemVersion = SelectField(render_kw={"class": "adminselect"}, choices=versions)
+    #core
+    test = BooleanField(render_kw={"placeholder": "test"}, label="test", default=Check("debug"))
+    save = SubmitField(label="save", render_kw={"class": "btn"})
 
 class LoginForm(FlaskForm):
     email = StringField(render_kw={"placeholder": Forms.email.value, "class": "textbox", "type": "text"})
@@ -161,7 +189,7 @@ def FlaskpApp():
     # economy socket page
     @app.route('/economy', methods=['GET', 'POST'])
     def economy():
-        if bool(Config.read()['economy']['active']) == False:
+        if bool(Config.read()['economy']['status']) == False:
             return render_template('message.html', titlemsg=MSGList.EconomyTitle.value, detailmsg=MSGList.DisableEconomy.value, image="/disable")
         else:
             # check email for session chat username
@@ -169,32 +197,33 @@ def FlaskpApp():
                 return render_template('economy.html')
             else:
                 return redirect(url_for('login'))
-        
-    @socketio.on("connect")
-    def handle_connect():
-        LOG.debug(Console.ClientConnected.value.format(ip=session['ip']))
+            
+    if bool(Config.read()['economy']['status']) == "True":
+        @socketio.on("connect")
+        def handle_connect():
+            LOG.debug(Console.ClientConnected.value.format(ip=session['ip']))
 
-    @socketio.on("user_join")
-    def handle_user_join():
-        LOG.debug(Console.UserJoined.value.format(username=session['username']))
-        users[session['username']] = request.sid
+        @socketio.on("user_join")
+        def handle_user_join():
+            LOG.debug(Console.UserJoined.value.format(username=session['username']))
+            users[session['username']] = request.sid
 
-    @socketio.on("new_message")
-    def handle_new_message(message):
-        LOG.warning(Console.NewMSG.value.format(username=session['username'], message=message))
-        username = None 
-        for user in users:
-            if users[user] == request.sid:
-                username = user
-        emit("chat", {"message": message, "username": username}, broadcast=True)
+        @socketio.on("new_message")
+        def handle_new_message(message):
+            LOG.warning(Console.NewMSG.value.format(username=session['username'], message=message))
+            username = None 
+            for user in users:
+                if users[user] == request.sid:
+                    username = user
+            emit("chat", {"message": message, "username": username}, broadcast=True)
 
-    @socketio.on('disconnect')
-    def disconnect(test):
-        emit('user disconnected', {'user_id': request.sid, 'message': users[request.sid].username+' disconnected'}, broadcast=True)
+        @socketio.on('disconnect')
+        def disconnect(test):
+            emit('user disconnected', {'user_id': request.sid, 'message': users[request.sid].username+' disconnected'}, broadcast=True)
 
     @app.context_processor
     def inject_user():
-        if Config.read()['core']['visitor'] == "yes":
+        if bool(Config.read()['core']['visitor']) == True:
             try:
                 if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
                     LOG.debug(Console.Vistors.value.format(ip=request.environ['REMOTE_ADDR']))
@@ -586,27 +615,6 @@ def FlaskpApp():
     # admin page
     @app.route("/admin",methods=['POST', 'GET'])
     def admin():
-        class AdminForm(FlaskForm):
-            # send sms to everyone
-            sendtext = SubmitField(label=Forms.Send.value, render_kw={"class": "btn"})
-            text_message = StringField(widget=TextArea())
-            # admin post article
-            title = StringField(render_kw={"class": "subject", "style": "", "placeholder": Forms.TitlePost.value})
-            detail = StringField(widget=TextArea(), render_kw={"placeholder": Forms.DetailPost.value})
-            position = SelectField(choices=["HomeWidth", "article"])
-            post = SubmitField(label=Forms.Post.value, render_kw={"class": "btn"})
-            articlefile = FileField(render_kw={"class": "file"}, validators=[FileRequired(), FileAllowed(['jpg', 'png'], 'Images only!')])
-            # admin add item in Store
-            ItemTitle = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.ItemStore.value})
-            ItemDetail = StringField(widget=TextArea(), render_kw={"class": "admindetail", "placeholder": Forms.DetailPost.value})
-            ItemPrice = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.PriceItem.value})
-            ItemSubmit = SubmitField(label=Forms.ItemSubmit.value, render_kw={"class": "adminbtn"})
-            ItemKind = SelectField(render_kw={"class": "adminselect"}, choices=["Item", "Reputation", "Mount", "Gold", "Service", "Proffesions"])
-            file = FileField(render_kw={"class": "file"}, validators=[FileRequired(), FileAllowed(['jpg', 'png'], 'Images only!')])
-            ItemID = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.ItemID.value})
-            ItemVersion = SelectField(render_kw={"class": "adminselect"}, choices=versions)
-            #core
-            test = BooleanField(render_kw={"placeholder": "test"}, label="test", default=Check("debug"))
         form = AdminForm()
         if "email" in session:
             if session['rank'] == 3:
@@ -624,7 +632,11 @@ def FlaskpApp():
                         file_data.save(f'{app.static_folder}\\img\\store\\' + file_name)
                         SQL.InsertItem(form.ItemTitle.data, form.ItemPrice.data, form.ItemDetail.data, form.ItemKind.data, form.ItemID.data, form.ItemVersion.data)
                         flash(MSGList.ItemSuccess.value)
-                return render_template('admin.html', form=form)
+                if form.save.data == True:
+                    tt = form.test.data
+                    print(tt)
+                    Config.write("economy", 'status', tt)
+                return render_template('admin.html', form=form, history=SQL.GetBuyHistory(session['email'], session['rank']))
             else:
                 return redirect(url_for('home'))
         else:

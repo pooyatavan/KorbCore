@@ -191,11 +191,15 @@ class sql():
         self.webcore.disconnect()
         return homewidth
 
-    def GetBuyHistory(self, email):
+    def GetBuyHistory(self, email, rank):
         start = time.perf_counter()
         self.webcore.reconnect()
-        self.cursor.execute(f'SELECT * FROM history Where email="{email}"')
-        history = self.cursor.fetchall()
+        if int(rank) == 3:
+            self.cursor.execute(f'SELECT * FROM history')
+            history = self.cursor.fetchall()
+        else:
+            self.cursor.execute(f'SELECT * FROM history Where email="{email}"')
+            history = self.cursor.fetchall()
         self.webcore.disconnect()
         LOG.info(Console.Load.value.format(number=len(history), table="history", time=TimeDo(start)))
         return history
