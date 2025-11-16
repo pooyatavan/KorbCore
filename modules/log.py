@@ -1,6 +1,8 @@
 import enum, datetime
 from pyfiglet import figlet_format
 
+from modules.ConfigReader import Config
+
 class colors(enum.Enum):
     gray = '\033[90m'
     green =  '\033[32m'
@@ -36,8 +38,9 @@ class Log:
         print(self.colorized(colors.magenta.value, msg, "[DEBG]"))
 
     def clearlogfile(self):
-        with open('log.txt', 'w'):      
-            pass
+        if Config.read()['log']['clear'] == "enable":
+            with open('log.txt', 'w'):      
+                pass
 
     def logo(self):
         logoart = figlet_format("KorbCore", font="standard", width=300)

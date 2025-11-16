@@ -3,6 +3,8 @@ from re import findall
 from subprocess import Popen, PIPE
 from string import ascii_uppercase
 
+from modules.ConfigReader import Config
+
 rooms = {}
 
 def key():
@@ -56,3 +58,9 @@ def RandomeCode(length):
         if code not in rooms:
             break
     return code
+
+def Check(ForCheck):
+    if bool(Config.read()['core'][ForCheck]) == " True":
+        return True
+    else:
+        return False

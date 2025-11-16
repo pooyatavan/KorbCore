@@ -16,6 +16,8 @@ phonenumbers = []
 statics = {}
 versions = []
 bugs = {}
+navigation = []
+language = {}
 
 class sql():
     def __init__(self):
@@ -115,9 +117,10 @@ class sql():
         self.webcore.reconnect()
         self.cursor.execute('Select * From navlinks')
         for row in self.cursor:
-            navlinks[row[1]] = {'title': row[2]}
+            #navlinks[row[1]] = {'href': row[1],'title': row[2], 'pos': row[3], 'name': row[4]}
+            navigation.append({'href': row[1],'title': row[2], 'pos': row[3], 'name': row[4]})
         LOG.info(Console.Load.value.format(number=len(navlinks), table="navlinks", time=TimeDo(start)))
-        return navlinks
+        return navlinks, navigation
 
     def ReadArtciles(self):
         start = time.perf_counter()
@@ -174,6 +177,14 @@ class sql():
         for row in self.cursor:
             bugs[row[4]] = {'kind': row[1], 'detail': row[2], 'status': row[3], 'user': row[4]}
         LOG.info(Console.Load.value.format(number=len(bugs), table="bugs", time=TimeDo(start)))
+
+    def ReadLanguage(self):
+        start = time.perf_counter()
+        self.cursor.execute('SELECT * FROM language')
+        for row in self.cursor:
+            language[row[0]] = {'name': row[2], 'language': row[1]}
+        LOG.info(Console.Load.value.format(number=len(bugs), table="Language", time=TimeDo(start)))
+        return language
 
     def homewidth(self, where, target):
         start = time.perf_counter()

@@ -1,8 +1,5 @@
 import configparser
 
-from modules.log import LOG
-from modules.strings import Console
-
 class config():
     def __init__(self):
         self.config = configparser.ConfigParser()
@@ -15,6 +12,5 @@ class config():
         self.config.set(f'{title}', f'{subject}', f'{value}')
         with open('config.ini', 'w') as ConfigFile:
             self.config.write(ConfigFile)
-            LOG.debug(Console.LogFile.value)
 
 Config = config()

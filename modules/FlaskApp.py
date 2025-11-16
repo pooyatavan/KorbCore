@@ -5,7 +5,6 @@ from flask_wtf import FlaskForm
 from suds.client import Client
 from werkzeug.utils import secure_filename
 from flask_wtf.file import FileField, FileRequired, FileAllowed
-from flask_socketio import SocketIO, emit, join_room, leave_room, send
 import datetime
 
 from modules.sql import SQL
@@ -19,20 +18,12 @@ from modules.strings import MSGList, Forms, Console, SOAPCS
 from modules.soap import SOAPC
 from modules.character import CharacterFinder
 from modules.Realmlist import RealmCheck, realmlists
-from modules.trade import Trade
 from modules.RecruitFreind import RF
 from modules.skill import SkillStructure
-from modules.tools import key, restart, IpFormatCheck, GetDate
-from modules.checks import Check
+from modules.tools import key, GetDate, Check
+from modules.translate import gtranslate
 
 app = Flask(__name__, static_folder='../static', template_folder='../templates')
-
-if bool(Config.read()['economy']['status']) == "True":
-    socketio = SocketIO()
-    socketio.init_app(app)
-    LOG.debug(Console.Status.value.format(object="economy", status="ON"))
-else:
-    LOG.debug(Console.Status.value.format(object="economy", status="Off"))
 
 if bool(Config.read()['core']['debug']) == True:
     app.secret_key = "123456"
@@ -43,10 +34,11 @@ if Config.read()['core']['setup'] == "disable":
     accounts = SQL.ReadAccounts()
     storeitems = SQL.StoreItems()
     redeemcodes = SQL.ReadRedeemCode()
-    navlinks = SQL.ReadLinks()
+    navlinks, navigation = SQL.ReadLinks()
     statics, blogs, homewidth = SQL.ReadArtciles()
     versions = SQL.ReadVersions()
-    bugs = SQL.ReadBugs()
+    language = SQL.ReadLanguage()
+    #bugs = SQL.ReadBugs()
 else:
     versions = []
     LOG.debug(Console.Setup.value)
@@ -175,73 +167,13 @@ def FlaskpApp():
     @app.route("/", methods=['GET', 'POST'])
     @app.route('/home', methods=['GET', 'POST'])
     def home():
-        # check for setup  cms
-        if Config.read()['core']['setup'] == "on":
-            return render_template('setup.html')
         if Config.read()['core']['maintence'] == "on":
             if session['rank'] < 3:
                 return render_template('maintence.html')
             else:
-                return render_template('home.html',  articles=blogs, homewidth=homewidth)
+                return render_template('home.html',  articles=blogs, homewidth=homewidth, navigation=navigation, list=language)
         else:
-            return render_template('home.html',  articles=blogs, homewidth=homewidth)
-    
-    # economy socket page
-    @app.route('/economy', methods=['GET', 'POST'])
-    def economy():
-        if bool(Config.read()['economy']['status']) == False:
-            return render_template('message.html', titlemsg=MSGList.EconomyTitle.value, detailmsg=MSGList.DisableEconomy.value, image="/disable")
-        else:
-            # check email for session chat username
-            if "email" in session:
-                return render_template('economy.html')
-            else:
-                return redirect(url_for('login'))
-            
-    if bool(Config.read()['economy']['status']) == "True":
-        @socketio.on("connect")
-        def handle_connect():
-            LOG.debug(Console.ClientConnected.value.format(ip=session['ip']))
-
-        @socketio.on("user_join")
-        def handle_user_join():
-            LOG.debug(Console.UserJoined.value.format(username=session['username']))
-            users[session['username']] = request.sid
-
-        @socketio.on("new_message")
-        def handle_new_message(message):
-            LOG.warning(Console.NewMSG.value.format(username=session['username'], message=message))
-            username = None 
-            for user in users:
-                if users[user] == request.sid:
-                    username = user
-            emit("chat", {"message": message, "username": username}, broadcast=True)
-
-        @socketio.on('disconnect')
-        def disconnect(test):
-            emit('user disconnected', {'user_id': request.sid, 'message': users[request.sid].username+' disconnected'}, broadcast=True)
-
-    @app.context_processor
-    def inject_user():
-        if bool(Config.read()['core']['visitor']) == True:
-            try:
-                if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
-                    LOG.debug(Console.Vistors.value.format(ip=request.environ['REMOTE_ADDR']))
-                else:
-                    LOG.debug(Console.Vistors.value.format(ip=request.environ['HTTP_X_FORWARDED_FOR']))
-            except:
-                LOG.error(Console.Error.value)
-        else:
-            pass
-        return dict(navlinks=navlinks)
-
-    # Trade
-    @app.route("/trade", methods=['POST', 'GET'])
-    def trade():
-        if request.method == 'POST':
-            pass
-        inmailvalue, mail = Trade.inmail()
-        return render_template('trade.html', inmailvalue=inmailvalue, mail=mail)
+            return render_template('home.html',  articles=blogs, homewidth=homewidth, navigation=navigation, list=language)
 
     # static pages
     @app.route("/static/<staticname>", methods=['GET'])
@@ -249,12 +181,12 @@ def FlaskpApp():
         if staticname not in statics:
             return render_template('message.html', titlemsg=MSGList.PageNotFoundTitle.value, detailmsg=MSGList.PageNotFoundDetail.value, image="blueprint/404")
         else:
-            return render_template('static.html', article=statics[staticname])
+            return render_template('static.html', article=statics[staticname], navigation=navigation)
 
     # blog page
     @app.route("/blog",methods=['POST', 'GET'])
     def blog():
-        return render_template('blog.html', blogs=blogs)
+        return render_template('blog.html', blogs=blogs, navigation=navigation)
 
     # blogpost
     @app.route("/blogpost/<blogpostname>", methods=['GET'])
@@ -262,7 +194,7 @@ def FlaskpApp():
         if blogpostname not in blogs:
             return render_template('message.html', titlemsg=MSGList.PageNotFoundTitle.value, detailmsg=MSGList.PageNotFoundDetail.value, image="blueprint/404")
         else:
-            return render_template('blogpost.html', article=blogs[blogpostname])
+            return render_template('blogpost.html', article=blogs[blogpostname], navigation=navigation)
 
     # login page
     @app.route("/login", methods=['POST', 'GET'])
@@ -320,13 +252,13 @@ def FlaskpApp():
             if "email" in session:
                  return redirect(url_for('upanel'))
             else:
-                return render_template('login.html', form=form)
-        return render_template('login.html', form=form)
+                return render_template('login.html', form=form, navigation=navigation)
+        return render_template('login.html', form=form, navigation=navigation)
 
     #store page
     @app.route("/store", methods=['POST', 'GET'])
     def store():
-        return render_template('store.html', storeitems=storeitems)
+        return render_template('store.html', storeitems=storeitems, navigation=navigation)
     
     # Select Realm page
     @app.route("/select-realm/<route>", methods=['POST', 'GET'])
@@ -340,7 +272,7 @@ def FlaskpApp():
                     session['version'] = form.select.data
                     session['realmip'] = realmlists[session['version']]['localip']
                     return redirect(url_for("store_item", id=route))
-            return render_template('select-realm.html', form=form)
+            return render_template('select-realm.html', form=form, navigation=navigation)
         else:
             return redirect(url_for('login'))
 
@@ -400,10 +332,10 @@ def FlaskpApp():
                         form.select.choices += [MSGList.Empty.value]
                     except:
                         flash(MSGList.WarningDetail.value, "alert-success")
-                return render_template('store_item.html', storeitems=storeitems, form=form)
+                return render_template('store_item.html', storeitems=storeitems, form=form, navigation=navigation)
             else:
                 form.select.choices = CharacterFinder.FindCharactersNames(session["email"], session['username'], session['realmip'], session['version'])
-                return render_template('store_item.html', storeitems=storeitems, form=form)
+                return render_template('store_item.html', storeitems=storeitems, form=form, navigation=navigation)
         else:
             return redirect(url_for('login'))
 
@@ -464,7 +396,7 @@ def FlaskpApp():
                 return redirect(url_for('send_request'))
         # check email for session
         if "email" in session:
-            return render_template('upanel.html', history=SQL.GetBuyHistory(session['email']), form=form)
+            return render_template('upanel.html', history=SQL.GetBuyHistory(session['email']), form=form, navigation=navigation)
         else:
             return redirect(url_for('login'))
 
@@ -501,7 +433,7 @@ def FlaskpApp():
         if "email" in session:
             return render_template('upanel.html')
         else:
-            return render_template('recovery.html', form=form)
+            return render_template('recovery.html', form=form, navigation=navigation)
 
     # paswword recovery code confrim
     @app.route("/recovery-code", methods=['POST', 'GET'])
@@ -515,9 +447,9 @@ def FlaskpApp():
             else:
                 flash(MSGList.WrongCode.value, "alert-error")
         if accounts[session["emailrecovery"]]['recover'] == "1":
-            return render_template('recovery-code.html', form=form)
+            return render_template('recovery-code.html', form=form, navigation=navigation)
         else:
-            return render_template('home.html')
+            return redirect(url_for('home'))
 
     # Chnage password
     @app.route("/change-password", methods=['POST', 'GET'])
@@ -545,7 +477,7 @@ def FlaskpApp():
                     return render_template('message.html', titlemsg=str(MSGList.ChangePasswordTitle.value), detailmsg=MSGList.ChangePasswordChangedDetail.value, image="ChangePass")
         try:
             if accounts[session["emailrecovery"]]['recover'] == "1":
-                return render_template('ChangePassword.html', form=form)
+                return render_template('ChangePassword.html', form=form, navigation=navigation)
         except:
             return redirect(url_for('home'))
 
@@ -553,7 +485,7 @@ def FlaskpApp():
     @app.route("/realm",methods=['POST', 'GET'])
     def realm():
         realmlist = RealmCheck()
-        return render_template('realm.html', realmlist=realmlist)
+        return render_template('realm.html', realmlist=realmlist, navigation=navigation)
 
     # register page
     @app.route("/register",methods=['POST', 'GET'])
@@ -610,7 +542,7 @@ def FlaskpApp():
             else:
                 if "email" in session:
                     return redirect(url_for('upanel'))
-        return render_template('register.html',form=form)
+        return render_template('register.html',form=form, navigation=navigation)
 
     # admin page
     @app.route("/admin",methods=['POST', 'GET'])
@@ -636,7 +568,7 @@ def FlaskpApp():
                     tt = form.test.data
                     print(tt)
                     Config.write("economy", 'status', tt)
-                return render_template('admin.html', form=form, history=SQL.GetBuyHistory(session['email'], session['rank']))
+                return render_template('admin.html', form=form, history=SQL.GetBuyHistory(session['email'], session['rank']), navigation=navigation)
             else:
                 return redirect(url_for('home'))
         else:
@@ -692,7 +624,7 @@ def FlaskpApp():
                     SQL.InsertBug(kindselect, detail, "hide", session['email'])
             else:
                 return redirect(url_for('login'))
-        return render_template('bugreport.html', form=form)
+        return render_template('bugreport.html', form=form, navigation=navigation)
 
     # Site maps
     @app.route('/sitemap.xml', methods=['GET'])
@@ -734,52 +666,3 @@ def FlaskpApp():
             return redirect(url_for('login'))
         except:
              LOG.error(Console.ErrorSocket.value)
-
-def FlaskSetup():
-    @app.route("/", methods=['GET', 'POST'])
-    @app.route('/setup', methods=['GET', 'POST'])
-    def setup():
-        form = SetupForm()
-        if form.validate_on_submit():
-            cmsservername = form.CMSServerName.data
-            cmsserverip = form.CMSServerIP.data
-            cmsport = form.CMSPort.data
-
-            sqlip = form.SQLServerIP.data
-            sqlport = form.SQLServerPORT.data
-            sqlusername = form.SQLUsername.data
-            sqlpassword = form.SQLPaswword.data
-
-            coresqlip = form.CoreSQLServerIP.data
-            coresqlport = form.CoreSQLServerPORT.data
-            coresqlusername = form.CoreSQLUsername.data
-            coresqlpassword = form.CoreSQLPaswword.data
-            if cmsservername or cmsserverip or cmsport or sqlip or sqlport or sqlusername or sqlpassword or coresqlip or coresqlport or coresqlusername or coresqlpassword == "":
-                flash(MSGList.EmptyFields.value, "alert-warning")
-            else:
-                ips = [cmsserverip, sqlip, coresqlip]
-                for ip in ips:
-                    if IpFormatCheck(ip) == True:
-                        Config.write('core', 'servername', cmsservername)
-                        Config.write('core', 'ip', cmsserverip)
-                        Config.write('core', 'port', cmsport)
-                        Config.write('core', 'setup', 'disable')
-                        restart()
-                    else:
-                        flash(MSGList.WrongIPAddressFormat.value, "alert-error")
-        return render_template('setup.html', form=form)
-    
-    @app.errorhandler(404)
-    def page_not_found(e):
-        return redirect(url_for('setup'))
-    app.register_error_handler(404, page_not_found)
-
-    @app.errorhandler(403)
-    def page_not_found(e):
-        return redirect(url_for('setup'))
-    app.register_error_handler(403, page_not_found)
-
-    @app.errorhandler(500)
-    def page_not_found(e):
-        return redirect(url_for('setup'))
-    app.register_error_handler(500, page_not_found)
