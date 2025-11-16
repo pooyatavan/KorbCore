@@ -1,77 +1,38 @@
 ﻿<html>
   <head>
     <link rel="stylesheet" media="all" href="{{ url_for('static', filename='css/style.css')}}"/>
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.1/css/all.css">
+    <link rel="stylesheet" media="all" href="{{ url_for('static', filename='css/font-awesome.css')}}"/>
+    <link rel="stylesheet" media="all" href="{{ url_for('static', filename='js/jquery.js')}}"/>
+    <link rel="stylesheet" href="path/to/font-awesome/css/font-awesome.min.css">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico')}}"/>
-    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js" integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+" crossorigin="anonymous"></script>
-
     {% if request.path in navlinks %}
-    <title>StormWoW | {{ navlinks[request.path]['title'] }}</title>
+      <title>StormWoW | {{ navlinks[request.path]['title'] }}</title>
     {% endif %}
-    
     {% if request.path not in navlinks %}
-    <title>WoWPrivate server</title>
+      <title>WoWPrivate server</title>
     {% endif %}
-
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta property="og:type" content="website" />
-    
     <script>const toggleMenuOpen = () => document.body.classList.toggle("open");</script>
-  
   </head>
   <body>
-    <div class="navigationbg">
-      <!-- Mobile menu -->
-      <div class="topnav">
-        <div id="myLinks">
-          <a href="/home" {% if request.endpoint == 'home' or request.endpoint == '' %}class="resnav-active"{% endif %}>خانه</a>
-          <a href="/store" {% if request.endpoint == 'store' %}class="resnav-active"{% endif %}>فروشگاه</a>
-          <a href="/realm" {% if request.endpoint == 'realm' %}class="resnav-active"{% endif %}>ریلم ها</a>
-          <a href="/article/client" {% if request.path.split('/')[2] == 'client' %}class="resnav-active"{% endif %}>آموزش اتصال</a>
-          <a href="/article/rules" {% if request.path.split('/')[2] == 'rules' %}class="resnav-active"{% endif %}>قوانین و مقررات</a>
-        </div>
-        <a href="javascript:void(0);" class="icon" onclick="myFunction()"></a>
-      </div>
-      <div class="logo-res"><img src="/static/img/logotest.png" /></div>
-      
+    <div class="navigationbg blur">
       <!--Desktop Menu-->
       <div class="navigation">
         <!-- Logo section -->
-        <div class="logo"><img src="/static/img/logotest.png" /></div>
-        
-        <!-- Center navigation center-->
-        <div class="nav_links">
-          <li class="{% if request.endpoint == 'home' or request.endpoint == '' %}active{% else %}not-active{% endif %}">
-            <a href="/home">Home</a>
-          </li>
-          <li class="{% if request.endpoint == 'store' %}active{% else %}not-active{% endif %}">
-            <a href="/store">Store</a>
-          </li>
-          <li class="{% if request.endpoint == 'realm' %}active{% else %}not-active{% endif %}">
-            <a href="/realm">Realms</a>
-          </li>
-          <li class="{% if request.path.split('/')[2] == 'client' %}active{% else %}not-active{% endif %}">
-            <a href="/static/client">How to Connect</a>
-          </li>
-          <li class="{% if request.path.split('/')[2] == 'rules' %}active{% else %}not-active{% endif %}">
-            <a href="/static/rules">Rules</a>
-          </li>
-          <li class="{% if request.endpoint == 'forum' %}active{% else %}not-active{% endif %}">
-            <a href="/forum">Forum</a>
-          </li>
-
-          <li class="{% if request.endpoint == 'bugreport' %}active{% else %}not-active{% endif %}">
-            <a href="/bugreport">Bug report</a>
-          </li>
-          <li class="{% if request.endpoint == 'economy' %}active{% else %}not-active{% endif %}">
-            <a href="/economy">Economy</a>
-          </li>
-          <li class="{% if request.endpoint == 'blog' %}active{% else %}not-active{% endif %}">
-            <a href="/blog">Blog</a>
-          </li>
+        <div class="logo">
+          <img src="/static/img/logo.png" />
         </div>
-
+        <div class="nav_links">
+          {% for nav in navigation %}
+            {% if nav['pos'] == 0 %}
+              <li class="{% if request.endpoint == nav['href'] or request.endpoint == '' %}active{% else %}not-active{% endif %}">
+                <a href="/{{nav['href']}}">{{nav['name']}}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+        </div>
         <!-- User navigation Section -->
         <div class="user_nav">
           {% if session['email'] %}
@@ -95,38 +56,16 @@
         </div>
       </div>
     </div>
-
-    {% block content %} {% endblock %}
-    
-    <div class="footer">
-      <div class="social">
-        <a href="#"><i class="fab fa-youtube"></i></a>
-        <a href="#"><i class="fab fa-instagram"></i></a>
-        <a href="#"><i class="fab fa-discord"></i></a>
-      </div>
-      <div class="footer_logo"></div>
-      <div class="footer_navigation">
-        <a class="footer_navigation" id="links" href="/home">HOME</a>
-        <a class="footer_navigation" href="/store">STORE</a>
-        <a class="footer_navigation" href="/realm">REALMS</a>
-        <a class="footer_navigation" href="/article/client">HOW TO CONNECT</a>
-        <a class="footer_navigation" href="/article/rules">RULES</a>
-        <a class="footer_navigation" href="/contact">CONTACT</a>
+    {% block content %}{% endblock %}
+    <div class="footer blur">
+      <div class="dropup">
+        <button class="dropbtn"><i class="fa fa-globe" aria-hidden="true"> {{ session['language'] }}</i></button>
+        <div class="dropup-content" role="menu" aria-hidden="true">
+          {% for row in list %}
+            <a href="#">{{ list[row]['name'] }}</a>
+          {% endfor %}
+        </div>
       </div>
     </div>
-    
-    <script type="text/javascript">const toggleSearch = () => document.body.classList.toggle("open");</script>
-    <script>
-      function myFunction() {
-        var x = document.getElementById("myLinks");
-        if (x.style.display === "block") {
-          x.style.display = "none";
-        } else {
-          x.style.display = "block";
-        }
-      }
-      </script>
-
     <script src="{{ url_for('static', filename='js/tabs.js')}}"></script>
-  </body>
 </html>
