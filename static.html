@@ -1,0 +1,14 @@
+{% extends "layout.html" %} {% block content %}
+<div class="articlecontainer">
+  <div class="articlebg" style="background-image: url('/static/img/content/{{ article['image'] }}.jpg');">
+    <div class="overarticle">
+      <h1>{{ article['title'] }}</h1>
+      <br />
+      <span>نوشته شده توسط {{ article['newsdate'] }} در تاریخ {{ article['by'] }}</span>
+    </div>
+  </div>
+  <div class="articlecontent">
+    {{ article['article'] | safe }}
+  </div>
+</div>
+{% endblock content %}

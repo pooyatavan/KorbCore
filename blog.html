@@ -1,0 +1,18 @@
+{% extends "layout.html" %} {% block content %}
+    <div class="articlecontainer">
+        {% for blog in blogs %}
+            {% if blogs[blog]['type'] == "blog" %}
+                <div class="blog">
+                    <div class="blog_image">
+                        <img src="/static/img/content/{{ blogs[blog]['image'] }}.jpg"/>
+                    </div>
+                    <div class="blog-detail">
+                        <h1>{{ blogs[blog]['title'] }}</h1>
+                        <p>{{ blogs[blog]['short'] }}...</p>
+                        <a href="/blogpost/{{ blogs[blog]['link'] }}">ادامه مطلب</a>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endblock content %}

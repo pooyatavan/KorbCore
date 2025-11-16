@@ -1,0 +1,47 @@
+<html>
+    <head>
+        <link rel="stylesheet" media="all" href="{{ url_for('static', filename='css/setup.css')}}"/>
+    </head>
+    <body>
+        <div class="articlecontainer">
+        <form action="" method="POST" id="regForm">
+            <h1>KORBCORE</h1>
+            <div class="setup">Setup
+
+                <a>CMS Core</a>
+                {{ form.hidden_tag() }}
+                <p>{{ form.CMSServerName() }}</p>
+                <p>{{ form.CMSServerIP() }}</p>
+                <p>{{ form.CMSPort() }}</p>
+
+                <a>SQL CMS connection</a>
+                <p>{{ form.SQLServerIP() }}</p>
+                <p>{{ form.SQLServerPORT() }}</p>
+                <p>{{ form.SQLUsername() }}</p>
+                <p>{{ form.SQLPaswword() }}</p>
+
+                <a>Core SQL connection</a>
+                <p>{{ form.CoreSQLServerIP() }}</p>
+                <p>{{ form.CoreSQLServerPORT() }}</p>
+                <p>{{ form.CoreSQLUsername() }}</p>
+                <p>{{ form.CoreSQLPaswword() }}</p>
+
+                <a>SOAP</a>
+                <p>{{ form.soapusername() }}</p>
+                <p>{{ form.soappassword() }}</p>
+
+                <a>Admin</a>
+                <p>{{ form.adminusername() }}</p>
+                <p>{{ form.adminpassword() }}</p>
+                <p>{{ form.adminrepassword() }}</p>
+            </div>
+            <div style="overflow:auto;">
+                <div style="float:right;">
+                    {{ form.Submit() }}
+                </div>
+            </div>
+            
+        </form>
+    </div>
+    </body>
+</html>

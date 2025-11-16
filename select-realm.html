@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container">
+    <form action="" method="post">
+        <div class="frame">
+            <div class="frame_title">انتخاب رلم</div>
+            {{ form.hidden_tag() }}
+            {{ form.select() }}
+        <br />
+        {{ form.submit() }}
+        </form>
+    </div>
+</div>
+{% endblock content %}

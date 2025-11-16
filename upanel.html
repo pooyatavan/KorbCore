@@ -1,0 +1,96 @@
+{% extends "layout.html" %} {% block content %}
+<div class="container">
+  <div class="ucontent">
+    <div class="ptabs">
+      <button class="tablinks" onclick="openCity(event, 'accountinfo')" id="defaultOpen">ACCOUNT INFO</button>
+      <button class="tablinks" onclick="openCity(event, 'redeemcode')">REDEEM CODE</button>
+      <button class="tablinks" onclick="openCity(event, 'invitefriend')">RECURIT FREIND</button>
+      <button class="tablinks" onclick="openCity(event, 'changepassword')">CHANGE PASSWORD</button>
+      <button class="tablinks" onclick="openCity(event, 'order')">ORDERS</button>
+      <button class="tablinks" onclick="openCity(event, 'token')">BUY TOKEN</button>
+    </div>
+    <div id="accountinfo" class="tabcontent">
+      <div class="userinfo">
+        <li><a>Fullname:</a><p>{{session.firstname}} {{session.lastname}}</p></li>
+        <li><a>Email:</a><p>{{session.email}}</p></li>
+        <li><a>Token:</a><p>{{session.token}}</p></li>
+        <li><a>Since Register:</a><p>{{session.regdate}}</p></li>
+        <li><a>Phonenumber:</a><p>{{session.phonenumber}}</p></li>
+        <li><a>Status:</a><p>{{session.status}}</p></li>
+        <li><a>IP Address:</a><p>{{session.ip}}</p></li>
+      </div>
+    </div>
+    <div id="redeemcode" class="tabcontent">
+      <form action="" method="post">
+        {{ form.hidden_tag() }}
+        {{ form.code() }}
+        {{ form.redeemcode() }}
+      </form>
+    </div>
+    <div id="invitefriend" class="tabcontent">
+      <div class="rigthelements">
+        <form action="" method="post">
+          {{ form.hidden_tag() }}
+          {{ form.invitefriendcode() }}
+          {{ form.invitefriendgen() }}
+        </form>
+      </div>
+    </div>
+    <div id="changepassword" class="tabcontent">
+      <form action="" method="post">
+        {{ form.hidden_tag() }}
+        {{ form.oldpassword() }}
+        {{ form.newpassword() }}
+        {{ form.renewpassword() }}
+        {{ form.changepassword() }}
+      </form>
+    </div>
+      <div id="order" class="tabcontent">
+        {% if history|length %}
+          <table class="customers">
+            <tr>
+              <th>Date</th>
+              <th>Item</th>
+              <th>Character</th>
+            </tr>
+            {% for row in history %}
+              <tr>
+                <td>{{ row[3] }}</td>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[5] }}</td>
+              </tr>
+            {% endfor %}
+          </table>
+        {% else %}
+          <div class="EmptyHistory">
+            <img src="/static/img/EmptyHistory.png"/>
+            <a>Empty</a>
+          </div>
+        {% endif %}
+      </div>
+    <div id="token" class="tabcontent">
+      <form class="tokenform" action="{{url_for('upanel')}}" method="post">
+        <div class="range">
+          <img src="/static/img/coins-solid.png">
+          <p>Token</p><a id="rangeValue">25</a><br/>
+          {{ form.hidden_tag() }}
+          {{ form.token() }}
+        </div>
+        {{ form.buytoken() }}
+      </form>
+    </div>
+  </div>
+  <div class="userpanelmsg">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="{{ category }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+  <div class="divider"></div>
+</div>
+{% endblock content %}

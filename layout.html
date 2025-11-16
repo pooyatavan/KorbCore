@@ -1,0 +1,71 @@
+﻿<html>
+  <head>
+    <link rel="stylesheet" media="all" href="{{ url_for('static', filename='css/style.css')}}"/>
+    <link rel="stylesheet" media="all" href="{{ url_for('static', filename='css/font-awesome.css')}}"/>
+    <link rel="stylesheet" media="all" href="{{ url_for('static', filename='js/jquery.js')}}"/>
+    <link rel="stylesheet" href="path/to/font-awesome/css/font-awesome.min.css">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico')}}"/>
+    {% if request.path in navlinks %}
+      <title>StormWoW | {{ navlinks[request.path]['title'] }}</title>
+    {% endif %}
+    {% if request.path not in navlinks %}
+      <title>WoWPrivate server</title>
+    {% endif %}
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta property="og:type" content="website" />
+    <script>const toggleMenuOpen = () => document.body.classList.toggle("open");</script>
+  </head>
+  <body>
+    <div class="navigationbg blur">
+      <!--Desktop Menu-->
+      <div class="navigation">
+        <!-- Logo section -->
+        <div class="logo">
+          <img src="/static/img/logo.png" />
+        </div>
+        <div class="nav_links">
+          {% for nav in navigation %}
+            {% if nav['pos'] == 0 %}
+              <li class="{% if request.endpoint == nav['href'] or request.endpoint == '' %}active{% else %}not-active{% endif %}">
+                <a href="/{{nav['href']}}">{{nav['name']}}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+        </div>
+        <!-- User navigation Section -->
+        <div class="user_nav">
+          {% if session['email'] %}
+          <li class="{% if request.endpoint == 'upanel' %}active{% else %}not-active{% endif %}">
+            <a href="/upanel">USER PANEL</a>
+          </li>
+          <li><a href="/logout">LOG OUT</a></li>
+          {% else %}
+          <li class="{% if request.endpoint == 'login' %}active{% else %}not-active{% endif %}">
+            <a href="/login">LOG IN</a>
+          </li>
+          <li class="{% if request.endpoint == 'register' %}active{% else %}not-active{% endif %}">
+            <a href="/register">CREATE ACCOUNT</a>
+          </li>
+          {% endif %}
+          {% if session['rank'] == 3 %}
+          <li class="{% if request.endpoint == 'admin' %}active{% else %}not-active{% endif %}">
+            <a href="/admin">Admin</a>
+          </li>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% block content %}{% endblock %}
+    <div class="footer blur">
+      <div class="dropup">
+        <button class="dropbtn"><i class="fa fa-globe" aria-hidden="true"> {{ session['language'] }}</i></button>
+        <div class="dropup-content" role="menu" aria-hidden="true">
+          {% for row in list %}
+            <a href="#">{{ list[row]['name'] }}</a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/tabs.js')}}"></script>
+</html>

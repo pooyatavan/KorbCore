@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="articlecontainer">
+        <div class="articlebg" style="background-image: url('static/img/content/bug.jpg');">
+            <div class="overarticle">
+                <h1>Bug Report</h1>
+                <br />
+                <span></span>
+            </div>
+        </div>
+        <div class="articlecontent">
+          {% if session['permission'] == "admin" %}
+            <form class="bugreport" action="" method="POST">
+                {{ form.hidden_tag() }}
+                {{ form.kindselect() }}
+                {{ form.detail() }}
+                {{ form.submit() }}
+            </form>
+          {% endif %}
+            <table class="customers">
+                <tr>
+                  <th>kind</th>
+                  <th>detail</th>
+                  <th>user</th>
+                  <th>date</th>
+                </tr>
+                {% for row in bugs %}
+                  <tr>
+                    <td>{{ row.kind }}</td>
+                    <td>{{ row.detail }}</td>
+                    <td>{{ row.sastus }}</td>
+                    <td></td>
+                  </tr>
+                {% endfor %}
+              </table>
+        </div>
+    </div>
+{% endblock content %}

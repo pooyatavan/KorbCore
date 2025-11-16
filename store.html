@@ -1,0 +1,117 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container">
+    <div class="store-content">
+        <div class="tabbed">
+            <input type="radio" id="tab1" name="css-tabs" checked>
+            <input type="radio" id="tab2" name="css-tabs">
+            <input type="radio" id="tab3" name="css-tabs">
+            <input type="radio" id="tab4" name="css-tabs">
+            <input type="radio" id="tab5" name="css-tabs">
+            <ul class="tabs">
+            <li class="tab"><label for="tab1">Mounts</label></li>
+            <li class="tab"><label for="tab2">Services</label></li>
+            <li class="tab"><label for="tab3">Professions</label></li>
+            <li class="tab"><label for="tab4">Gold</label></li>
+            <li class="tab"><label for="tab5">Reputation</label></li>
+            </ul>
+            <div class="tab-content">
+               <div class="tab-body">
+                {% for item in storeitems %}
+                    {% if item.mode == "mount" %}
+                        <div class="item" onclick="location.href='store_item/{{ item.id }}'">
+                            <div class="item-image">
+                                <img src="/static/img/store/{{ item.image }}.jpg"/>
+                            </div>
+                            <div class="item_container">
+                                <div class="item-title"><h1>{{ item.title }}</h1></div>
+                                <div class="item-detail"><p>{{ item.detail }}</p></div>
+                                <div class="price">${{ item.token }}</div>
+                                <div class="version">v {{ item.version }} </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+               </div>
+            </div>
+            <div class="tab-content">
+               <div class="tab-body">
+                {% for item in storeitems %}
+                    {% if item.mode == "service" %}
+                        <div class="item" onclick="location.href='select-realm/{{ item.id }}'">
+                            <div class="item-image">
+                                <img src="/static/img/store/{{ item.image }}.jpg"/>
+                            </div>
+                            <div class="item_container">
+                                <div class="item-title"><h1>{{ item.title }}</h1></div>
+                                <div class="item-detail"><p>{{ item.detail }}</p></div>
+                                <div class="price">${{ item.token }}</div>
+                                <div class="version">All</div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+               </div>
+            </div>
+            <div class="tab-content">
+                <div class="tab-body">
+                    {% for item in storeitems %}
+                        {% if item.mode == "work" %}
+                            <div class="item" onclick="location.href='select-realm/{{ item.id }}'">
+                                <div class="item-image">
+                                    <img src="/static/img/store/{{ item.image }}.jpg"/>
+                                </div>
+                                <div class="item_container">
+                                    <div class="item-title"><h1>{{ item.title }}</h1></div>
+                                    <div class="item-detail"><p>{{ item.detail }}</p></div>
+                                    <div class="price">${{ item.token }}</div>
+                                    <div class="version">All</div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="tab-content">
+                <div class="tab-body">
+                    {% for item in storeitems %}
+                        {% if item.mode == "gold" %}
+                            <div class="item" onclick="location.href='store_item/{{ item.id }}'">
+                                <div class="item-image">
+                                    <img src="/static/img/store/{{ item.image }}.jpg"/>
+                                </div>
+                                <div class="item_container">
+                                    <div class="item-title"><h1>{{ item.title }}</h1></div>
+                                    <div class="item-detail"><p>{{ item.detail }}</p></div>
+                                    <div class="price">${{ item.token }}</div>
+                                    <div class="version">{{ item.version }}</div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="tab-content">
+                <div class="tab-body">
+                    {% for item in storeitems %}
+                        {% if item.mode == "rep" %}
+                            <div class="item" onclick="location.href='store_item/{{ item.id }}'">
+                                <div class="item-image">
+                                    <img src="/static/img/store/{{ item.image }}.jpg"/>
+                                </div>
+                                <div class="item_container">
+                                    <div class="item-title"><h1>{{ item.title }}</h1></div>
+                                    <div class="item-detail"><p>{{ item.detail }}</p></div>
+                                    <div class="price">${{ item.token }}</div>
+                                    <div class="version">{{ item.version }}</div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="divider"></div>
+</div>
+{% endblock content %}
