@@ -2,12 +2,12 @@
 <div class="container">
   <div class="ucontent">
     <div class="ptabs">
-      <button class="tablinks" onclick="openCity(event, 'accountinfo')" id="defaultOpen">ACCOUNT INFO</button>
-      <button class="tablinks" onclick="openCity(event, 'redeemcode')">REDEEM CODE</button>
-      <button class="tablinks" onclick="openCity(event, 'invitefriend')">RECURIT FREIND</button>
-      <button class="tablinks" onclick="openCity(event, 'changepassword')">CHANGE PASSWORD</button>
-      <button class="tablinks" onclick="openCity(event, 'order')">ORDERS</button>
-      <button class="tablinks" onclick="openCity(event, 'token')">BUY TOKEN</button>
+      <button class="tablinks text-center" onclick="openCity(event, 'accountinfo')" id="defaultOpen">ACCOUNT INFO</button>
+      <button class="tablinks text-center" onclick="openCity(event, 'redeemcode')">REDEEM CODE</button>
+      <button class="tablinks text-center" onclick="openCity(event, 'invitefriend')">RECURIT FREIND</button>
+      <button class="tablinks text-center" onclick="openCity(event, 'changepassword')">CHANGE PASSWORD</button>
+      <button class="tablinks text-center" onclick="openCity(event, 'order')">ORDERS</button>
+      <button class="tablinks text-center" onclick="openCity(event, 'token')">BUY TOKEN</button>
     </div>
     <div id="accountinfo" class="tabcontent">
       <div class="userinfo">
@@ -47,7 +47,7 @@
     </div>
       <div id="order" class="tabcontent">
         {% if history|length %}
-          <table class="customers">
+          <table class="customers text-center">
             <tr>
               <th>Date</th>
               <th>Item</th>
@@ -71,7 +71,7 @@
     <div id="token" class="tabcontent">
       <form class="tokenform" action="{{url_for('upanel')}}" method="post">
         <div class="range">
-          <img src="/static/img/coins-solid.png">
+          <img class="png-color" src="/static/img/coins-solid.png">
           <p>Token</p><a id="rangeValue">25</a><br/>
           {{ form.hidden_tag() }}
           {{ form.token() }}

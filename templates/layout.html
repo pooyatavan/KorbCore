@@ -58,13 +58,15 @@
     </div>
     {% block content %}{% endblock %}
     <div class="footer blur">
+      <div class="all">©2025 Korb Entertainment, Inc. All  trademarks referenced herein are the properties of their respective owners</div>     
       <div class="dropup">
         <button class="dropbtn"><i class="fa fa-globe" aria-hidden="true"> {{ session['language'] }}</i></button>
         <div class="dropup-content" role="menu" aria-hidden="true">
-          {% for row in list %}
-            <a href="#">{{ list[row]['name'] }}</a>
+          {% for row in language %}
+            <a href="#">{{ language[row]['name'] }}</a>
           {% endfor %}
         </div>
+        
       </div>
     </div>
     <script src="{{ url_for('static', filename='js/tabs.js')}}"></script>

@@ -1,35 +1,34 @@
 {% extends "layout.html" %}
 {% block content %}
-    <div class="articlecontainer">
-        <div class="articlebg" style="background-image: url('static/img/content/bug.jpg');">
-            <div class="overarticle">
-                <h1>Bug Report</h1>
-                <br />
-                <span></span>
+    <div class="article-container">
+        <div class="article-bg" style="background-image: url('static/img/content/bug.jpg');">
+            <div class="over-article">
+                <h1 class="effect-title text-center">Bug Report</h1>
+                <p class="effect-story text-center">Try checking Wowhead for any skill, quest, item, or NPC involved in the problem, and check the top-rated comments. You may find helpful instructions from other players about the issue, along with potential solutions/workarounds to known issues.</p>
             </div>
         </div>
-        <div class="articlecontent">
-          {% if session['permission'] == "admin" %}
-            <form class="bugreport" action="" method="POST">
+        <div class="article-content">
+          {% if session['email'] %}
+            <form class="bug-report" action="" method="POST">
                 {{ form.hidden_tag() }}
                 {{ form.kindselect() }}
                 {{ form.detail() }}
                 {{ form.submit() }}
             </form>
           {% endif %}
-            <table class="customers">
+            <table class="customers margin-mid text-center">
                 <tr>
                   <th>kind</th>
                   <th>detail</th>
                   <th>user</th>
                   <th>date</th>
                 </tr>
-                {% for row in bugs %}
+                {% for bug in bugs %}
                   <tr>
-                    <td>{{ row.kind }}</td>
-                    <td>{{ row.detail }}</td>
-                    <td>{{ row.sastus }}</td>
-                    <td></td>
+                    <td>{{ bug.kind }}</td>
+                    <td>{{ bug.detail }}</td>
+                    <td>{{ bug.user }}</td>
+                    <td>{{ bug.date }}</td>
                   </tr>
                 {% endfor %}
               </table>

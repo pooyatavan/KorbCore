@@ -1,14 +1,21 @@
 {% extends "layout.html" %} {% block content %}
-<div class="articlecontainer">
-    <div class="articlebg" style="background-image: url('https://stormwow.ir/static/img/content/{{ article['image'] }}.jpg');">
-        <div class="overarticle">
-            <h1>{{ article['title'] }}</h1>
-            <br />
-            <span>نوشته شده توسط {{ article['newsdate'] }} در تاریخ {{ article['by'] }}</span>
+<div class="article-container">
+    <div class="article-bg" style="background-image: url('/static/img/content/{{ article['image'] }}.jpg');">
+        <div class="over-article text-center">
+            <h1 class="effect-title">{{ article['title'] }}</h1>
+            <br/>
+            <div class="tag glass-blur r-border margin-mid">this post published by {{ article['by'] }} in {{ article['newsdate'] }}</div>
         </div>
     </div>
-    <div class="articlecontent">
+    <div class="article-content">
         {{ article['article'] | safe }}
     </div>
+    {% if session['email'] %}
+        <form class="comment" method="post" action="">
+            {{ form.hidden_tag() }}
+            {{ form.text() }}
+            {{ form.submit() }}
+        </form>
+    {% endif %}
 </div>
 {% endblock content %}

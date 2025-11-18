@@ -1,78 +1,91 @@
 {% extends "layout.html" %}
 {% block content %}
 <link rel="stylesheet" media="all" href="{{ url_for('static', filename='css/admin.css')}}"/>
-    <div class="container">
-        <div class="ucontent">
-            <div class="ptabs">
-                <button class="tablinks" onclick="openCity(event, 'store')" id="defaultOpen">Store</button>
-                <button class="tablinks" onclick="openCity(event, 'post')">Post</button>
-                <button class="tablinks" onclick="openCity(event, 'ban')">Bans</button>
-                <button class="tablinks" onclick="openCity(event, 'changepassword')">Change Password</button>
-                <button class="tablinks" onclick="openCity(event, 'orders')">Orders</button>
-                <button class="tablinks" onclick="openCity(event, 'sms')">Send Message</button>
-                <button class="tablinks" onclick="openCity(event, 'core')">Core</button>
-            </div>
-            <div id="orders" class="tabcontent">
-                {% if history|length %}
-                  <table class="customers">
-                    <tr>
-                      <th>Date</th>
-                      <th>Item</th>
-                      <th>Character</th>
-                    </tr>
-                    {% for row in history %}
-                      <tr>
-                        <td>{{ row[3] }}</td>
-                        <td>{{ row[2] }}</td>
-                        <td>{{ row[5] }}</td>
-                      </tr>
-                    {% endfor %}
-                  </table>
-                {% else %}
-                  <div class="EmptyHistory">
-                    <img src="/static/img/EmptyHistory.png"/>
-                    <a>Empty</a>
-                  </div>
-                {% endif %}
-              </div>
-            <div id="sms" class="tabcontent">
-                <form action="" method="post">
-                    {{ form.hidden_tag() }}
-                    {{ form.text_message() }}
-                    {{ form.sendtext() }}
-                </form>
-            </div>
-            <div id="post" class="tabcontent">
-                <form action="" method="post" enctype="multipart/form-data">
-                    {{ form.hidden_tag() }}
-                    {{ form.position}}
-                    {{ form.title() }}
-                    {{ form.detail() }}
-                    {{ form.file() }}
-                    {{ form.post() }}
-                </form>
-            </div>
-            <div id="store" class="tabcontent">
-                <form action="" method="post" enctype="multipart/form-data">
-                    {{ form.hidden_tag() }}
-                    {{ form.ItemTitle() }}
-                    {{ form.ItemPrice() }}
-                    {{ form.ItemKind}}
-                    {{ form.ItemVersion() }}
-                    {{ form.ItemID() }}
-                    {{ form.ItemDetail() }}
-                    {{ form.file() }}
-                    {{ form.ItemSubmit() }}
-                </form>
-            </div>
-            <div id="core" class="tabcontent">
-                <form action="" method="post" enctype="multipart/form-data">
-                    {{ form.hidden_tag() }}
-                    {{ form.test() }}
-                    {{ form.save() }}
-                </form>
-            </div>
-        </div>
-        <div class="divider"></div>
+<div class="container">
+  <div class="ucontent">
+    <div class="ptabs">
+      <button class="tablinks" onclick="openCity(event, 'store')" id="defaultOpen">Store</button>
+      <button class="tablinks" onclick="openCity(event, 'post')">Post</button>
+      <button class="tablinks" onclick="openCity(event, 'ban')">Bans</button>
+      <button class="tablinks" onclick="openCity(event, 'changepassword')">Change Password</button>
+      <button class="tablinks" onclick="openCity(event, 'orders')">Orders</button>
+      <button class="tablinks" onclick="openCity(event, 'sms')">Send Message</button>
+      <button class="tablinks" onclick="openCity(event, 'core')">Core</button>
+      <button class="tablinks" onclick="openCity(event, 'theme')">theme</button>
     </div>
+    <div id="orders" class="tabcontent">
+      {% if history|length %}
+        <table class="customers text-center">
+          <tr>
+            <th>Date</th>
+            <th>Item</th>
+            <th>Character</th>
+          </tr>
+          {% for row in history %}
+            <tr>
+              <td>{{ row[3] }}</td>
+              <td>{{ row[2] }}</td>
+              <td>{{ row[5] }}</td>
+            </tr>
+          {% endfor %}
+        </table>
+      {% else %}
+        <div class="EmptyHistory">
+          <img src="/static/img/EmptyHistory.png"/>
+          <a>Empty</a>
+        </div>
+      {% endif %}
+    </div>
+    <div id="sms" class="tabcontent">
+      <form action="" method="post">
+        {{ form.hidden_tag() }}
+        {{ form.text_message() }}
+        {{ form.sendtext() }}
+      </form>
+    </div>
+    <div id="post" class="tabcontent">
+      <form action="" method="post" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        {{ form.position}}
+        {{ form.title() }}
+        {{ form.detail() }}
+        {{ form.file() }}
+        {{ form.post() }}
+      </form>
+    </div>
+    <div id="store" class="tabcontent">
+      <form action="" method="post" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        {{ form.ItemTitle() }}
+        {{ form.ItemPrice() }}
+        {{ form.ItemKind}}
+        {{ form.ItemVersion() }}
+        {{ form.ItemID() }}
+        {{ form.ItemDetail() }}
+        {{ form.file() }}
+        {{ form.ItemSubmit() }}
+      </form>
+    </div>
+    <div id="core" class="tabcontent">
+      <form action="" method="post" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        {{ form.test() }}
+        {{ form.save() }}
+      </form>
+    </div>
+    <div id="theme" class="tabcontent">
+      <form action="" method="post" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        {{ form.MainColor.label }}
+        {{ form.MainColor() }}
+        <br>
+        {{ form.MainColorHover.label }}
+        {{ form.MainColorHover() }}
+        <br>
+        {{ form.SaveColor()}}
+      </form>
+    </div>
+  </div>
+  <div class="divider"></div>
+</div>
 {% endblock content %}
