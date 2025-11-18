@@ -18,6 +18,8 @@ versions = []
 bugs = {}
 navigation = []
 language = {}
+BugsID = []
+cover = {}
 
 class sql():
     def __init__(self):
@@ -94,6 +96,16 @@ class sql():
         LOG.info(Console.Load.value.format(number=len(store), table="store", time=TimeDo(start)))
         return store
 
+    def ReadBugs(self):
+        self.webcore.reconnect()
+        start = time.perf_counter()
+        self.cursor.execute('SELECT * FROM bugs')
+        for row in self.cursor:
+            BugsID.append(row[0])
+            bugs[row[0]] = {'id': row[0], 'kind': row[1], 'detail': row[2], 'status': row[3], 'user': row[4], 'date': row[5]}
+        LOG.info(Console.Load.value.format(number=len(bugs), table="bugs", time=TimeDo(start)))
+        return bugs, BugsID
+
     def ReadRedeemCode(self):
         start = time.perf_counter()
         self.cursor.execute('SELECT * FROM redeemcode')
@@ -159,8 +171,20 @@ class sql():
                 'exclusive': row[9],
                 'detail': row[4],
                 'type': row[5]}
+
+            elif row[5] == "cover":
+                cover[row[7]] = {
+                'title': row[1],
+                'by': row[2],
+                'newsdate': row[3],
+                'article': row[4],
+                'image': row[6],
+                'link': row[8],
+                'exclusive': row[9],
+                'detail': row[4],
+                'type': row[5]}
         self.webcore.disconnect()
-        return statics, self.InvertIDict(blogs), homewidth
+        return statics, self.InvertIDict(blogs), homewidth, cover
 
     def ReadVersions(self):
         self.webcore.reconnect()
@@ -170,13 +194,6 @@ class sql():
             versions.append(row[1])
         LOG.info(Console.Load.value.format(number=len(redeemcodes), table="redeemcodes", time=TimeDo(start)))
         return versions
-
-    def ReadBugs(self):
-        start = time.perf_counter()
-        self.cursor.execute('SELECT * FROM bugs')
-        for row in self.cursor:
-            bugs[row[4]] = {'kind': row[1], 'detail': row[2], 'status': row[3], 'user': row[4]}
-        LOG.info(Console.Load.value.format(number=len(bugs), table="bugs", time=TimeDo(start)))
 
     def ReadLanguage(self):
         start = time.perf_counter()
@@ -212,7 +229,7 @@ class sql():
             self.cursor.execute(f'SELECT * FROM history Where email="{email}"')
             history = self.cursor.fetchall()
         self.webcore.disconnect()
-        LOG.info(Console.Load.value.format(number=len(history), table="history", time=TimeDo(start)))
+        #LOG.info(Console.Load.value.format(number=len(history), table="history", time=TimeDo(start)))
         return history
 
     def Register(self, firstname, lastname, email, password, regdate, phonenumber, username):

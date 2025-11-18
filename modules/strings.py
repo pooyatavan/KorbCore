@@ -104,7 +104,10 @@ class Forms(Enum):
     CoreSQLServerPORT = 'CORE SQL Server port'
     CoreSQLUsername = 'CORE SQL Server  username'
     CoreSQLPaswword = 'CORE SQL Server  password'
-    
+    Comments = "add a comment for this..."
+    Color = 'Pick a color'
+    SaveColor = 'Save'
+
 class Console(Enum):
     FlaskRunning = 'Flask framework is running on {ip}:{port}'
     FlaskError = 'Flask framework cannot run'
@@ -133,6 +136,7 @@ class Console(Enum):
     SocketError = 'Socket error while transmit message'
     Setup = 'Setup is running for config'
     Status = '{object} is {status}'
+    Theme = '{username} change theme color'
 
 class SOAPCS(Enum):
     url = 'http://{ip}:7878'

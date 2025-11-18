@@ -1,6 +1,27 @@
-def ChangeCSS(old, new):
-    with open('style.css') as mycss:
-        mylist = mycss.readlines()
-        for a, b in enumerate(mylist):
-            if b.find("font") == 2:
-                print(b)
+from pathlib import Path
+
+def GetLocation():
+    return str(Path(__file__).resolve().parent.parent) + "\\static\\css\\style.css"
+
+def ChangeCSS(line, newcolor):
+    csspath = GetLocation()
+    with open(csspath, "r") as css:
+        lines = css.readlines()
+        if line == 6:
+            lines[line] = f"--highlight: {newcolor};\n"
+        if line == 7:
+            lines[line] = f"--highlight-hover: {newcolor};\n"
+    with open(csspath, "w") as css:
+        css.writelines(lines)
+        css.close()
+    
+
+def GetColors(line):
+    csspath = GetLocation()
+    with open(csspath, "r") as css:
+        lines = css.readlines()
+        css.close()
+    if line == 6:
+        return lines[line].replace("--highlight: ", "").replace(";", "")[0:7]
+    if line == 7:
+        return lines[line].replace("--highlight-hover: ", "").replace(";", "")[0:7]

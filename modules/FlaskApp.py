@@ -1,11 +1,14 @@
 ﻿from flask import Flask, render_template, request, redirect, url_for, session, make_response, flash
-from wtforms import StringField, SubmitField, SelectField, FileField, BooleanField
+from flask_ckeditor import CKEditor
+from flask_ckeditor import CKEditorField
+from wtforms import StringField, SubmitField, SelectField, FileField, BooleanField, ColorField
 from wtforms.widgets import TextArea
 from flask_wtf import FlaskForm
 from suds.client import Client
 from werkzeug.utils import secure_filename
 from flask_wtf.file import FileField, FileRequired, FileAllowed
-import datetime
+import datetime, os
+from wtforms.validators import DataRequired
 
 from modules.sql import SQL
 from modules.log import LOG
@@ -20,10 +23,13 @@ from modules.character import CharacterFinder
 from modules.Realmlist import RealmCheck, realmlists
 from modules.RecruitFreind import RF
 from modules.skill import SkillStructure
-from modules.tools import key, GetDate, Check
+from modules.tools import key, GetDate, Check, IpFormatCheck, restart
 from modules.translate import gtranslate
+from modules.theme import ChangeCSS, GetColors
 
 app = Flask(__name__, static_folder='../static', template_folder='../templates')
+ckeditor = CKEditor()
+ckeditor.init_app(app)
 
 if bool(Config.read()['core']['debug']) == True:
     app.secret_key = "123456"
@@ -35,18 +41,26 @@ if Config.read()['core']['setup'] == "disable":
     storeitems = SQL.StoreItems()
     redeemcodes = SQL.ReadRedeemCode()
     navlinks, navigation = SQL.ReadLinks()
-    statics, blogs, homewidth = SQL.ReadArtciles()
+    statics, blogs, homewidth, cover = SQL.ReadArtciles()
     versions = SQL.ReadVersions()
     language = SQL.ReadLanguage()
-    #bugs = SQL.ReadBugs()
+    bugs = SQL.ReadBugs()
 else:
     versions = []
     LOG.debug(Console.Setup.value)
 
-BugKind = ['Choose...', 'Spell', 'Boss', 'Quest', 'Item']
 users = {}
+items = ["Item", "Reputation", "Mount", "Gold", "Service", "Proffesions"]
+BugKind = ['Choose...', 'Spell', 'Boss', 'Quest', 'Item']
+BlogKindList = ['Home', 'Static', 'Blog']
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'static\\img\\content')
 
 class AdminForm(FlaskForm):
+    # article blog
+    title = StringField('Title')
+    body = CKEditorField('Body')
+    submit = SubmitField('Submit')
     # send sms to everyone
     sendtext = SubmitField(label=Forms.Send.value, render_kw={"class": "btn"})
     text_message = StringField(render_kw={"class": "admintextbox"}, widget=TextArea())
@@ -68,6 +82,10 @@ class AdminForm(FlaskForm):
     #core
     test = BooleanField(render_kw={"placeholder": "test"}, label="test", default=Check("debug"))
     save = SubmitField(label="save", render_kw={"class": "btn"})
+    # theme
+    MainColor = ColorField(Forms.Color.value, validators=[DataRequired()])
+    MainColorHover = ColorField(Forms.Color.value, validators=[DataRequired()])
+    SaveColor = SubmitField(Forms.SaveColor.value)
 
 class LoginForm(FlaskForm):
     email = StringField(render_kw={"placeholder": Forms.email.value, "class": "textbox", "type": "text"})
@@ -121,6 +139,21 @@ class UserPanelForms(FlaskForm):
     # invite Friend
     invitefriendcode = StringField(render_kw={"placeholder": f"{Forms.InvitedFriendCode.value}", "class": "textbox", "readonly": "readonly"})
     invitefriendgen = SubmitField(render_kw={"class": "btn"})
+    # admin add item in Store
+    ItemTitle = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.ItemStore.value})
+    ItemDetail = StringField(widget=TextArea(), render_kw={"class": "admindetail", "placeholder": Forms.DetailPost.value})
+    ItemPrice = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.PriceItem.value})
+    ItemKind = SelectField(render_kw={"class": "adminselect"}, choices=items)
+    file = FileField(render_kw={"class": "file"}, validators=[FileRequired(), FileAllowed(ALLOWED_EXTENSIONS, 'Images only!')])
+    ItemID = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.ItemID.value})
+    ItemVersion = SelectField(render_kw={"class": "adminselect"}, choices=versions)
+    ItemSubmit = SubmitField(label=Forms.ItemSubmit.value, render_kw={"class": "adminbtn"})
+    # admin post article
+    title = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.TitlePost.value})
+    detail = StringField(widget=TextArea(), render_kw={"class": "admintextbox", "placeholder": Forms.DetailPost.value})
+    position = SelectField(choices=["HomeWidth", "article"])
+    post = SubmitField(label=Forms.Post.value, render_kw={"class": "btn"})
+    articlefile = FileField(render_kw={"class": "file"}, validators=[FileRequired(), FileAllowed(['jpg', 'png'], 'Images only!')])
 
 class SelectRealmForm(FlaskForm):
     select = SelectField(render_kw={"style": "margin-top: 30px"})
@@ -162,7 +195,53 @@ class SetupForm(FlaskForm):
     adminrepassword = StringField(render_kw={"placeholder": Forms.CoreSQLPaswword.value})
     Submit = SubmitField(label=Forms.Submit.value)
 
+class Comment(FlaskForm):
+    text = StringField(render_kw={"placeholder": Forms.Comments.value, "class": "textbox"})
+    submit = SubmitField(label=Forms.Submit.value, render_kw={"class": "btn"})
+
 def FlaskpApp():
+    # admin page
+    @app.route("/admin",methods=['POST', 'GET'])
+    def admin():
+        form = AdminForm()
+        if "email" in session:
+            if session['rank'] == 3:
+                if form.sendtext.data == True:
+                    msg = form.text_message.data
+                    SMS.STA(msg)
+                if form.post.data  == True:
+                    file_data = form.file.data
+                    file_name = secure_filename(file_data.filename)
+                    file_data.save(f'{app.static_folder}\\img\\content\\' + file_name)
+                if form.ItemSubmit.data == True:
+                    if form.ItemTitle.data == "" or form.ItemPrice.data == "" or form.ItemDetail.data == "" or form.ItemID.data == "":
+                        flash(MSGList.EmptyFields.value)
+                    else:
+                        file_data.save(f'{app.static_folder}\\img\\store\\' + file_name)
+                        SQL.InsertItem(form.ItemTitle.data, form.ItemPrice.data, form.ItemDetail.data, form.ItemKind.data, form.ItemID.data, form.ItemVersion.data)
+                        flash(MSGList.ItemSuccess.value)
+                if form.save.data == True:
+                    tt = form.test.data
+                    Config.write("economy", 'status', tt)
+                if form.SaveColor.data == True:
+                    MainColor = form.MainColor.data
+                    MainColorHover = form.MainColorHover.data
+                    ChangeCSS(6, MainColor)
+                    ChangeCSS(7, MainColorHover)
+                    LOG.debug(Console.Theme.value.format(username=session['username']))
+                else:
+                    form.MainColor.data = GetColors(6)
+                    form.MainColorHover.data = GetColors(7)
+                return render_template('admin.html', form=form, history=SQL.GetBuyHistory(session['email'], session['rank']))
+            else:
+                return redirect(url_for('home'))
+        else:
+            return redirect(url_for('home'))
+        
+    @app.context_processor
+    def inject_user():
+        return dict(navlinks=navlinks, navigation=navigation, language=language)
+    
     #home page and defualt page
     @app.route("/", methods=['GET', 'POST'])
     @app.route('/home', methods=['GET', 'POST'])
@@ -171,9 +250,9 @@ def FlaskpApp():
             if session['rank'] < 3:
                 return render_template('maintence.html')
             else:
-                return render_template('home.html',  articles=blogs, homewidth=homewidth, navigation=navigation, list=language)
+                return render_template('home.html',  articles=blogs, homewidth=homewidth, cover=cover)
         else:
-            return render_template('home.html',  articles=blogs, homewidth=homewidth, navigation=navigation, list=language)
+            return render_template('home.html',  articles=blogs, homewidth=homewidth, cover=cover)
 
     # static pages
     @app.route("/static/<staticname>", methods=['GET'])
@@ -181,21 +260,24 @@ def FlaskpApp():
         if staticname not in statics:
             return render_template('message.html', titlemsg=MSGList.PageNotFoundTitle.value, detailmsg=MSGList.PageNotFoundDetail.value, image="blueprint/404")
         else:
-            return render_template('static.html', article=statics[staticname], navigation=navigation)
+            return render_template('static.html', article=statics[staticname])
 
     # blog page
     @app.route("/blog",methods=['POST', 'GET'])
     def blog():
-        return render_template('blog.html', blogs=blogs, navigation=navigation)
+        return render_template('blog.html', blogs=blogs)
 
     # blogpost
-    @app.route("/blogpost/<blogpostname>", methods=['GET'])
+    @app.route("/blogpost/<blogpostname>", methods=['POST', 'GET'])
     def blogpost(blogpostname):
+        form = Comment()
+        if form.submit.data == True:
+            print(form.text.data)
         if blogpostname not in blogs:
             return render_template('message.html', titlemsg=MSGList.PageNotFoundTitle.value, detailmsg=MSGList.PageNotFoundDetail.value, image="blueprint/404")
         else:
-            return render_template('blogpost.html', article=blogs[blogpostname], navigation=navigation)
-
+            return render_template('blogpost.html', article=blogs[blogpostname], form=form)
+    
     # login page
     @app.route("/login", methods=['POST', 'GET'])
     def login():
@@ -240,6 +322,7 @@ def FlaskpApp():
                                     session['code'] = account['code']
                                     session['count'] = account['count']
                                     session['rank'] = account['rank']
+                                    session['language'] = "English"
                                     LOG.debug(Console.LoginSuccess.value.format(email=session["email"], ip=session["registerip"]))
                                     return redirect(url_for('upanel'))
                         else:
@@ -252,13 +335,13 @@ def FlaskpApp():
             if "email" in session:
                  return redirect(url_for('upanel'))
             else:
-                return render_template('login.html', form=form, navigation=navigation)
-        return render_template('login.html', form=form, navigation=navigation)
+                return render_template('login.html', form=form)
+        return render_template('login.html', form=form)
 
     #store page
     @app.route("/store", methods=['POST', 'GET'])
     def store():
-        return render_template('store.html', storeitems=storeitems, navigation=navigation)
+        return render_template('store.html', storeitems=storeitems)
     
     # Select Realm page
     @app.route("/select-realm/<route>", methods=['POST', 'GET'])
@@ -272,7 +355,7 @@ def FlaskpApp():
                     session['version'] = form.select.data
                     session['realmip'] = realmlists[session['version']]['localip']
                     return redirect(url_for("store_item", id=route))
-            return render_template('select-realm.html', form=form, navigation=navigation)
+            return render_template('select-realm.html', form=form)
         else:
             return redirect(url_for('login'))
 
@@ -332,10 +415,10 @@ def FlaskpApp():
                         form.select.choices += [MSGList.Empty.value]
                     except:
                         flash(MSGList.WarningDetail.value, "alert-success")
-                return render_template('store_item.html', storeitems=storeitems, form=form, navigation=navigation)
+                return render_template('store_item.html', storeitems=storeitems, form=form)
             else:
                 form.select.choices = CharacterFinder.FindCharactersNames(session["email"], session['username'], session['realmip'], session['version'])
-                return render_template('store_item.html', storeitems=storeitems, form=form, navigation=navigation)
+                return render_template('store_item.html', storeitems=storeitems, form=form)
         else:
             return redirect(url_for('login'))
 
@@ -396,7 +479,7 @@ def FlaskpApp():
                 return redirect(url_for('send_request'))
         # check email for session
         if "email" in session:
-            return render_template('upanel.html', history=SQL.GetBuyHistory(session['email']), form=form, navigation=navigation)
+            return render_template('upanel.html', history=SQL.GetBuyHistory(session['email'], rank=str(session['rank'])), form=form)
         else:
             return redirect(url_for('login'))
 
@@ -433,7 +516,7 @@ def FlaskpApp():
         if "email" in session:
             return render_template('upanel.html')
         else:
-            return render_template('recovery.html', form=form, navigation=navigation)
+            return render_template('recovery.html', form=form)
 
     # paswword recovery code confrim
     @app.route("/recovery-code", methods=['POST', 'GET'])
@@ -447,7 +530,7 @@ def FlaskpApp():
             else:
                 flash(MSGList.WrongCode.value, "alert-error")
         if accounts[session["emailrecovery"]]['recover'] == "1":
-            return render_template('recovery-code.html', form=form, navigation=navigation)
+            return render_template('recovery-code.html', form=form)
         else:
             return redirect(url_for('home'))
 
@@ -477,7 +560,7 @@ def FlaskpApp():
                     return render_template('message.html', titlemsg=str(MSGList.ChangePasswordTitle.value), detailmsg=MSGList.ChangePasswordChangedDetail.value, image="ChangePass")
         try:
             if accounts[session["emailrecovery"]]['recover'] == "1":
-                return render_template('ChangePassword.html', form=form, navigation=navigation)
+                return render_template('ChangePassword.html', form=form)
         except:
             return redirect(url_for('home'))
 
@@ -485,7 +568,7 @@ def FlaskpApp():
     @app.route("/realm",methods=['POST', 'GET'])
     def realm():
         realmlist = RealmCheck()
-        return render_template('realm.html', realmlist=realmlist, navigation=navigation)
+        return render_template('realm.html', realmlist=realmlist)
 
     # register page
     @app.route("/register",methods=['POST', 'GET'])
@@ -542,42 +625,14 @@ def FlaskpApp():
             else:
                 if "email" in session:
                     return redirect(url_for('upanel'))
-        return render_template('register.html',form=form, navigation=navigation)
-
-    # admin page
-    @app.route("/admin",methods=['POST', 'GET'])
-    def admin():
-        form = AdminForm()
-        if "email" in session:
-            if session['rank'] == 3:
-                if form.sendtext.data == True:
-                    msg = form.text_message.data
-                    SMS.STA(msg)
-                if form.post.data  == True:
-                    file_data = form.file.data
-                    file_name = secure_filename(file_data.filename)
-                    file_data.save(f'{app.static_folder}\\img\\content\\' + file_name)
-                if form.ItemSubmit.data == True:
-                    if form.ItemTitle.data == "" or form.ItemPrice.data == "" or form.ItemDetail.data == "" or form.ItemID.data == "":
-                        flash(MSGList.EmptyFields.value)
-                    else:
-                        file_data.save(f'{app.static_folder}\\img\\store\\' + file_name)
-                        SQL.InsertItem(form.ItemTitle.data, form.ItemPrice.data, form.ItemDetail.data, form.ItemKind.data, form.ItemID.data, form.ItemVersion.data)
-                        flash(MSGList.ItemSuccess.value)
-                if form.save.data == True:
-                    tt = form.test.data
-                    print(tt)
-                    Config.write("economy", 'status', tt)
-                return render_template('admin.html', form=form, history=SQL.GetBuyHistory(session['email'], session['rank']), navigation=navigation)
-            else:
-                return redirect(url_for('home'))
-        else:
-            return redirect(url_for('home'))
+        return render_template('register.html',form=form)
 
     # forum page
-    @app.route("/forum",methods=['POST', 'GET'])
+    @app.route("/forum", methods=['POST', 'GET'])
     def forum():
-        return render_template('forum.html')
+        form = AdminForm()
+        form.PickColor.data = "#fff000"
+        return render_template('forum.html', form=form)
 
     @app.route('/request/')
     def send_request():
@@ -624,7 +679,7 @@ def FlaskpApp():
                     SQL.InsertBug(kindselect, detail, "hide", session['email'])
             else:
                 return redirect(url_for('login'))
-        return render_template('bugreport.html', form=form, navigation=navigation)
+        return render_template('bugreport.html', form=form, bugs=bugs)
 
     # Site maps
     @app.route('/sitemap.xml', methods=['GET'])
@@ -656,6 +711,10 @@ def FlaskpApp():
         return render_template('message.html', titlemsg=MSGList.Warningtitle.value, detailmsg=MSGList.WarningDetail.value, image="blueprint/500"), 500
     app.register_error_handler(500, page_not_found)
 
+    @app.before_request
+    def keep_session_alive():
+        session.modified = True
+
     # user logout
     @app.route("/logout")
     def logout():
@@ -666,3 +725,52 @@ def FlaskpApp():
             return redirect(url_for('login'))
         except:
              LOG.error(Console.ErrorSocket.value)
+    
+def FlaskSetup():
+    @app.route("/", methods=['GET', 'POST'])
+    @app.route('/setup', methods=['GET', 'POST'])
+    def setup():
+        form = SetupForm()
+        if form.validate_on_submit():
+            cmsservername = form.CMSServerName.data
+            cmsserverip = form.CMSServerIP.data
+            cmsport = form.CMSPort.data
+
+            sqlip = form.SQLServerIP.data
+            sqlport = form.SQLServerPORT.data
+            sqlusername = form.SQLUsername.data
+            sqlpassword = form.SQLPaswword.data
+
+            coresqlip = form.CoreSQLServerIP.data
+            coresqlport = form.CoreSQLServerPORT.data
+            coresqlusername = form.CoreSQLUsername.data
+            coresqlpassword = form.CoreSQLPaswword.data
+            if cmsservername or cmsserverip or cmsport or sqlip or sqlport or sqlusername or sqlpassword or coresqlip or coresqlport or coresqlusername or coresqlpassword == "":
+                flash(MSGList.EmptyFields.value, "alert-warning")
+            else:
+                ips = [cmsserverip, sqlip, coresqlip]
+                for ip in ips:
+                    if IpFormatCheck(ip) == True:
+                        Config.write('core', 'servername', cmsservername)
+                        Config.write('core', 'ip', cmsserverip)
+                        Config.write('core', 'port', cmsport)
+                        Config.write('core', 'setup', 'disable')
+                        restart()
+                    else:
+                        flash(MSGList.WrongIPAddressFormat.value, "alert-error")
+        return render_template('setup.html', form=form)
+    
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return redirect(url_for('setup'))
+    app.register_error_handler(404, page_not_found)
+
+    @app.errorhandler(403)
+    def page_not_found(e):
+        return redirect(url_for('setup'))
+    app.register_error_handler(403, page_not_found)
+
+    @app.errorhandler(500)
+    def page_not_found(e):
+        return redirect(url_for('setup'))
+    app.register_error_handler(500, page_not_found)

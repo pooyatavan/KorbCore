@@ -14,4 +14,4 @@ def gtranslate(text, target):
     result = response.json()[0][0][0]
     return result
 
-print(gtranslate("hello", "tr"))
+#print(gtranslate("hello", "tr"))
