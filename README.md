@@ -1,4 +1,4 @@
-# KorbCore WoW
+# KorbCore
 Korbcore is a World of Warcraft cms Powered by Flask Framework based mostly in Python and It is completely open source; community involvement is highly encouraged. If you wish to contribute ideas or code please make pull requests to our Github repository.
 # Reporting issues
 Issues can be reported via the Github issue tracker. Please take the time to review existing issues before submitting your own to prevent duplicates.
