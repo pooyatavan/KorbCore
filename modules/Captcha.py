@@ -1,5 +1,6 @@
 from captcha.image import ImageCaptcha
 import random, os.path, shutil
+from pathlib import Path
 
 from modules.strings import Console
 from modules.ConfigReader import Config
@@ -13,7 +14,11 @@ class captcha():
             self.imageconfig = ImageCaptcha(width= int(Config.read()['captcha']['width']), height= int(Config.read()['captcha']['height']), fonts=['static/css/conduit.ttf'])
         else:
             self.imageconfig = ImageCaptcha(width= int(Config.read()['captcha']['width']), height= int(Config.read()['captcha']['height']))
-        self.path = "static/captcha/"
+        self.path = os.path.join(os.getcwd(), 'static\\captcha')
+        if os.path.isdir(self.path):
+            pass
+        else:
+            Path(self.path).mkdir()
 
     def gencode(self):
         return str(random.sample(range(int(Config.read()['captcha']['rangestart']), int(Config.read()['captcha']['rangeend'])), 1)).replace("[", "").replace("]", "")

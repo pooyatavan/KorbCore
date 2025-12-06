@@ -1,4 +1,4 @@
-﻿import mysql.connector, time, sys
+import mysql.connector, time, sys
 
 from modules.ConfigReader import Config
 from modules.strings import Console, MSGList
@@ -29,7 +29,8 @@ class sql():
                     database='webcore',
                     user=Config.read()['webdb']['username'],
                     password=Config.read()['webdb']['password'],
-                    port=Config.read()['webdb']['port'])
+                    port=Config.read()['webdb']['port'],
+                    use_pure=True )
                 self.cursor = self.webcore.cursor()
             except:
                 LOG.error(Console.ConnSQLError.value.format(ip=Config.read()['webdb']['ip']))
@@ -102,9 +103,9 @@ class sql():
         self.cursor.execute('SELECT * FROM bugs')
         for row in self.cursor:
             BugsID.append(row[0])
-            bugs[row[0]] = {'id': row[0], 'kind': row[1], 'detail': row[2], 'status': row[3], 'user': row[4], 'date': row[5]}
+            bugs[row[0]] = {'id': row[0], 'kind': row[1], 'detail': row[2], 'status': row[3], 'user': row[4], 'date': row[5], 'visible': row[6]}
         LOG.info(Console.Load.value.format(number=len(bugs), table="bugs", time=TimeDo(start)))
-        return bugs, BugsID
+        return bugs
 
     def ReadRedeemCode(self):
         start = time.perf_counter()
@@ -200,7 +201,7 @@ class sql():
         self.cursor.execute('SELECT * FROM language')
         for row in self.cursor:
             language[row[0]] = {'name': row[2], 'language': row[1]}
-        LOG.info(Console.Load.value.format(number=len(bugs), table="Language", time=TimeDo(start)))
+        LOG.info(Console.Load.value.format(number=len(language), table="Language", time=TimeDo(start)))
         return language
 
     def homewidth(self, where, target):
@@ -295,20 +296,34 @@ class sql():
         accounts[email].update({'count': int(accounts[email]['count']) + 1})
         self.webcore.commit()
 
-    def InsertItem(self, image, title, price, detail, mode, faction, id):
+    def InsertItem(self, image, price, detail, title, mode, faction, version, itemid, maxskill):
         self.webcore.reconnect()
         cursor = self.webcore.cursor()
-        cursor.execute("INSERT INTO store (image, price, detail, title, mode, faction, version, itemid, service, maxskill) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (image, price, detail, title, mode, faction,))
+        cursor.execute("INSERT INTO store (image, price, detail, title, mode, faction, version, itemid, service, maxskill) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (image, price, detail, title, mode, faction, version, itemid, mode, maxskill))
         self.webcore.commit()
-        #history.append({'email': email, 'item': item, 'date': date, 'username': username, 'charactername': charactername})
         self.webcore.disconnect()
+        store.append({
+            'id': int(len(store)) + 1,
+            'image': image,
+            'token': price,
+            'detail': detail,
+            'title': title,
+            'mode': mode,
+            'version': version,
+            'itemid': itemid,
+            'service': "mount",
+            'maxskill': 0})
 
-    def InsertBug(self, kind, detail, visible, user):
+    def InsertBug(self, kind, detail, status, user, date, visible):
         self.webcore.reconnect()
         cursor = self.webcore.cursor()
-        cursor.execute("INSERT INTO bugs (kind, detail, visible, user) VALUES (%s, %s, %s, %s)", (kind, detail, visible, user))
+        cursor.execute("INSERT INTO bugs (kind, detail, status, user, date, visible) VALUES (%s, %s, %s, %s, %s, %s)", (kind, detail, status, user, date, visible))
         self.webcore.commit()
-        bugs.append({'kind': kind, 'detail': detail, 'visible': visible, 'user': user})
+        self.webcore.reconnect()
+        cursor = self.webcore.cursor()
+        cursor.execute('SELECT * FROM bugs')
+        res = cursor.fetchall()
+        bugs[len(res) + 1] = {'id': len(res) + 1, 'kind': kind, 'detail': detail, 'status': status, 'user': user, 'date': date, 'visible': visible}
         self.webcore.disconnect()
 
 SQL = sql()

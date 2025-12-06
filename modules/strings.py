@@ -107,6 +107,8 @@ class Forms(Enum):
     Comments = "add a comment for this..."
     Color = 'Pick a color'
     SaveColor = 'Save'
+    Faction = 'Faction'
+    Skill = 'Skill'
 
 class Console(Enum):
     FlaskRunning = 'Flask framework is running on {ip}:{port}'
@@ -126,7 +128,7 @@ class Console(Enum):
     STASMS = 'Send a message to {contact_count}'
     DebugOff = 'Debug mode is Off'
     DebugOn = 'Debug mode is ON'
-    RemoveAllCaptchas = 'Captcha iamge deleted Successfuly'
+    RemoveAllCaptchas = 'Captcha image deleted successfully'
     NetworkInfo = 'Server local ip address is {ip}'
     LogFile = 'Log hase ben changed'
     ClientConnected = 'Client Connected from: {ip}'
@@ -137,7 +139,8 @@ class Console(Enum):
     Setup = 'Setup is running for config'
     Status = '{object} is {status}'
     Theme = '{username} change theme color'
-
+    Boom = 'Removed BOM: {path}'
+    
 class SOAPCS(Enum):
     url = 'http://{ip}:7878'
     Item = 'send item {character} "StormWoW Shop" "Az entekhab shoma mamnonim. StormWoW.ir" {itemid}'

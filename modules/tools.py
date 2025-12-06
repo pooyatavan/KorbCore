@@ -2,8 +2,11 @@ import os, threading, sys, socket, datetime, time, random
 from re import findall
 from subprocess import Popen, PIPE
 from string import ascii_uppercase
+from pathlib import Path
 
 from modules.ConfigReader import Config
+from modules.log import LOG
+from modules.strings import Console
 
 rooms = {}
 
@@ -64,3 +67,15 @@ def Check(ForCheck):
         return True
     else:
         return False
+    
+def GetProjectRoot():
+    return os.getcwd()
+
+def RemoveBOM():
+    ROOT = Path(GetProjectRoot())
+    BOM = b"\xef\xbb\xbf"
+    for path in ROOT.rglob("*.py"):
+        data = path.read_bytes()
+        if data.startswith(BOM):
+            path.write_bytes(data[len(BOM):])
+            LOG.info(Console.Boom.value.format(path=path))

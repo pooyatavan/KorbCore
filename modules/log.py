@@ -43,7 +43,6 @@ class Log:
                 pass
 
     def logo(self):
-        logoart = figlet_format("KorbCore", font="standard", width=300)
-        print(colors.green.value, logoart)
+        print(figlet_format("KorbCore", font="standard", width=300))
 
 LOG = Log()

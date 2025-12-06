@@ -1,7 +1,6 @@
-﻿from flask import Flask, render_template, request, redirect, url_for, session, make_response, flash
-from flask_ckeditor import CKEditor
-from flask_ckeditor import CKEditorField
-from wtforms import StringField, SubmitField, SelectField, FileField, BooleanField, ColorField
+from flask import Flask, render_template, request, redirect, url_for, session, make_response, flash
+from flask_ckeditor import CKEditor, CKEditorField
+from wtforms import StringField, SubmitField, SelectField, FileField, BooleanField, ColorField, DateTimeField
 from wtforms.widgets import TextArea
 from flask_wtf import FlaskForm
 from suds.client import Client
@@ -69,15 +68,17 @@ class AdminForm(FlaskForm):
     detail = StringField(widget=TextArea(), render_kw={"class": "admintextbox", "placeholder": Forms.DetailPost.value})
     position = SelectField(choices=["HomeWidth", "article"])
     post = SubmitField(label=Forms.Post.value, render_kw={"class": "btn"})
-    articlefile = FileField(render_kw={"class": "file"}, validators=[FileRequired(), FileAllowed(['jpg', 'png'], 'Images only!')])
+    ArticleImage = FileField(render_kw={"class": "file"}, validators=[FileRequired(), FileAllowed(['jpg', 'png'], 'Images only!')])
     # admin add item in Store
     ItemTitle = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.ItemStore.value})
     ItemDetail = StringField(widget=TextArea(), render_kw={"class": "admindetail", "placeholder": Forms.DetailPost.value})
     ItemPrice = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.PriceItem.value})
     ItemSubmit = SubmitField(label=Forms.ItemSubmit.value, render_kw={"class": "adminbtn"})
     ItemKind = SelectField(render_kw={"class": "adminselect"}, choices=["Item", "Reputation", "Mount", "Gold", "Service", "Proffesions"])
-    file = FileField(render_kw={"class": "file"}, validators=[FileRequired(), FileAllowed(['jpg', 'png'], 'Images only!')])
+    ItemImage = FileField(render_kw={"class": "file"}, validators=[FileRequired(), FileAllowed(['jpg', 'png'], 'Images only!')])
     ItemID = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.ItemID.value})
+    Faction = SelectField(render_kw={"class": "adminselect"}, choices=["Horde", "Alliance", "All"])
+    MaxSkill = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.Skill.value})
     ItemVersion = SelectField(render_kw={"class": "adminselect"}, choices=versions)
     #core
     test = BooleanField(render_kw={"placeholder": "test"}, label="test", default=Check("debug"))
@@ -85,7 +86,10 @@ class AdminForm(FlaskForm):
     # theme
     MainColor = ColorField(Forms.Color.value, validators=[DataRequired()])
     MainColorHover = ColorField(Forms.Color.value, validators=[DataRequired()])
+    Background = ColorField(Forms.Color.value, validators=[DataRequired()])
     SaveColor = SubmitField(Forms.SaveColor.value)
+    # Report
+    start =     event_datetime = DateTimeField('Event Date & Time', format='%Y-%m-%d %H:%M', validators=[DataRequired()])
 
 class LoginForm(FlaskForm):
     email = StringField(render_kw={"placeholder": Forms.email.value, "class": "textbox", "type": "text"})
@@ -147,6 +151,7 @@ class UserPanelForms(FlaskForm):
     file = FileField(render_kw={"class": "file"}, validators=[FileRequired(), FileAllowed(ALLOWED_EXTENSIONS, 'Images only!')])
     ItemID = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.ItemID.value})
     ItemVersion = SelectField(render_kw={"class": "adminselect"}, choices=versions)
+    
     ItemSubmit = SubmitField(label=Forms.ItemSubmit.value, render_kw={"class": "adminbtn"})
     # admin post article
     title = StringField(render_kw={"class": "admintextbox", "placeholder": Forms.TitlePost.value})
@@ -213,12 +218,15 @@ def FlaskpApp():
                     file_data = form.file.data
                     file_name = secure_filename(file_data.filename)
                     file_data.save(f'{app.static_folder}\\img\\content\\' + file_name)
+                # Submit Item Store
                 if form.ItemSubmit.data == True:
                     if form.ItemTitle.data == "" or form.ItemPrice.data == "" or form.ItemDetail.data == "" or form.ItemID.data == "":
                         flash(MSGList.EmptyFields.value)
                     else:
+                        file_data = form.ItemImage.data
+                        file_name = secure_filename(file_data.filename)
                         file_data.save(f'{app.static_folder}\\img\\store\\' + file_name)
-                        SQL.InsertItem(form.ItemTitle.data, form.ItemPrice.data, form.ItemDetail.data, form.ItemKind.data, form.ItemID.data, form.ItemVersion.data)
+                        SQL.InsertItem(file_name, form.ItemPrice.data, form.ItemDetail.data, form.ItemTitle.data, form.ItemKind.data.lower(), form.Faction.data, form.ItemVersion.data, form.ItemID.data, form.MaxSkill.data)
                         flash(MSGList.ItemSuccess.value)
                 if form.save.data == True:
                     tt = form.test.data
@@ -226,12 +234,15 @@ def FlaskpApp():
                 if form.SaveColor.data == True:
                     MainColor = form.MainColor.data
                     MainColorHover = form.MainColorHover.data
+                    Background = form.Background.data
                     ChangeCSS(6, MainColor)
                     ChangeCSS(7, MainColorHover)
+                    ChangeCSS(9, Background)
                     LOG.debug(Console.Theme.value.format(username=session['username']))
                 else:
                     form.MainColor.data = GetColors(6)
                     form.MainColorHover.data = GetColors(7)
+                    form.Background.data = GetColors(9)
                 return render_template('admin.html', form=form, history=SQL.GetBuyHistory(session['email'], session['rank']))
             else:
                 return redirect(url_for('home'))
@@ -630,9 +641,7 @@ def FlaskpApp():
     # forum page
     @app.route("/forum", methods=['POST', 'GET'])
     def forum():
-        form = AdminForm()
-        form.PickColor.data = "#fff000"
-        return render_template('forum.html', form=form)
+        return render_template('forum.html', storeitems=storeitems)
 
     @app.route('/request/')
     def send_request():
@@ -676,7 +685,7 @@ def FlaskpApp():
                 if kindselect == "Choose...":
                     flash(MSGList.BugNotSelected.value)
                 else:
-                    SQL.InsertBug(kindselect, detail, "hide", session['email'])
+                    SQL.InsertBug(kindselect, detail, "Checkin", session['username'], GetDate(), 0)
             else:
                 return redirect(url_for('login'))
         return render_template('bugreport.html', form=form, bugs=bugs)
