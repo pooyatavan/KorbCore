@@ -1,0 +1,10 @@
+Flask==3.1.2
+Flask_CKEditor==1.0.0
+flask_wtf==1.2.2
+gevent==25.9.1
+mysql_connector_repackaged==0.3.1
+pyfiglet==1.0.4
+Requests==2.32.5
+suds_jurko==0.6
+Werkzeug==3.1.4
+WTForms==3.2.1
