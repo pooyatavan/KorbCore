@@ -1,15 +1,15 @@
 import logging, sys
 from gevent.pywsgi import WSGIServer
 
-# no cache files for python
 sys.dont_write_bytecode = True
 
 from modules.log import LOG
 from modules.Captcha import Captcha
 from modules.ConfigReader import Config
-from modules.tools import network
+from modules.tools import network, RemoveBOM
 
 LOG.logo()
+RemoveBOM()
 Captcha.RemoveAllCaptchas()
 LOG.clearlogfile()
 
