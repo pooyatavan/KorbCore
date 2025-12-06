@@ -18,6 +18,7 @@
           {% endif %}
             <table class="customers margin-mid text-center">
                 <tr>
+                  <th>status</th>
                   <th>kind</th>
                   <th>detail</th>
                   <th>user</th>
@@ -25,10 +26,11 @@
                 </tr>
                 {% for bug in bugs %}
                   <tr>
-                    <td>{{ bug.kind }}</td>
-                    <td>{{ bug.detail }}</td>
-                    <td>{{ bug.user }}</td>
-                    <td>{{ bug.date }}</td>
+                    <td>{{ bugs[bug].status }}</td>
+                    <td>{{ bugs[bug].kind }}</td>
+                    <td>{{ bugs[bug].detail }}</td>
+                    <td>{{ bugs[bug].user }}</td>
+                    <td>{{ bugs[bug].date }}</td>
                   </tr>
                 {% endfor %}
               </table>
