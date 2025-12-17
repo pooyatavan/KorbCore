@@ -1,6 +1,6 @@
-from captcha.image import ImageCaptcha
 import random, os.path, shutil
 from pathlib import Path
+from PIL import Image, ImageDraw, ImageFont
 
 from modules.strings import Console
 from modules.ConfigReader import Config
@@ -11,33 +11,47 @@ Captchas = {}
 class captcha():
     def __init__(self):
         if Config.read()['captcha']['latin'] == "disable":
-            self.imageconfig = ImageCaptcha(width= int(Config.read()['captcha']['width']), height= int(Config.read()['captcha']['height']), fonts=['static/css/conduit.ttf'])
+            pass
         else:
-            self.imageconfig = ImageCaptcha(width= int(Config.read()['captcha']['width']), height= int(Config.read()['captcha']['height']))
-        self.path = os.path.join(os.getcwd(), 'static\\captcha')
+            pass
+        self.path = os.path.join(os.getcwd(), 'static\\captcha\\')
         if os.path.isdir(self.path):
             pass
         else:
             Path(self.path).mkdir()
 
-    def gencode(self):
+    def GenCode(self):
         return str(random.sample(range(int(Config.read()['captcha']['rangestart']), int(Config.read()['captcha']['rangeend'])), 1)).replace("[", "").replace("]", "")
 
-    def generateimage(self, ip):
-        if ip not in Captchas:
-            code = self.gencode()
-            Captchas[ip] = {'code': code}
-            self.imageconfig.generate(code)
-            filename = os.path.join(self.path, ip + ".png")  
-            self.imageconfig.write(code, filename)
+    def GenImage(self, ip, code):
+        width = int(Config.read()['captcha']['width'])
+        height = int(Config.read()['captcha']['height'])
+        img = Image.new("RGB", (width, height), color=(0, 0, 0))
+        draw = ImageDraw.Draw(img)
+        try:
+            font = ImageFont.truetype("static/css/conduit.ttf", int(Config.read()['captcha']['fontsize']))
+        except OSError:
+            font = ImageFont.load_default()
+        text_color = (255, 255, 255)
+        bbox = draw.textbbox((0, 0), code, font=font)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
+        x = (width - text_width) // 2
+        y = (height - text_height) // 2
+        draw.text((x, y), code, fill=text_color, font=font)
+        img.save(os.path.join(self.path, f"{ip}.png"))
 
-    def regenerateimage(self, ip):
-        code = self.gencode()
+    def GenCaptcha(self, ip):
+        if ip not in Captchas:
+            code = self.GenCode()
+            Captchas[ip] = {'code': code}
+            self.GenImage(ip, code)
+
+    def RegenCaptcha(self, ip):
+        code = self.GenCode()
         Captchas[ip] = {'code': code}
-        self.imageconfig.generate(code)
-        filename = os.path.join(self.path, ip + ".png")  
-        self.imageconfig.write(code, filename)
-        
+        self.GenImage(ip, code)
+
     def removecaptcha(self, ip):
         try:
             if ip in Captchas:

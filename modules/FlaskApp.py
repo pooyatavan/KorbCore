@@ -11,7 +11,6 @@ from wtforms.validators import DataRequired
 
 from modules.sql import SQL
 from modules.log import LOG
-from modules.EmailSystem import email_check
 from modules.ConfigReader import Config
 from modules.Captcha import Captcha
 from modules.sms import SMS
@@ -22,7 +21,7 @@ from modules.character import CharacterFinder
 from modules.Realmlist import RealmCheck, realmlists
 from modules.RecruitFreind import RF
 from modules.skill import SkillStructure
-from modules.tools import key, GetDate, Check, IpFormatCheck, restart
+from modules.tools import key, GetDate, Check, IpFormatCheck, restart, email_check
 from modules.translate import gtranslate
 from modules.theme import ChangeCSS, GetColors
 
@@ -288,20 +287,19 @@ def FlaskpApp():
             return render_template('message.html', titlemsg=MSGList.PageNotFoundTitle.value, detailmsg=MSGList.PageNotFoundDetail.value, image="blueprint/404")
         else:
             return render_template('blogpost.html', article=blogs[blogpostname], form=form)
-    
     # login page
     @app.route("/login", methods=['POST', 'GET'])
     def login():
         if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
             session["registerip"] = request.environ['REMOTE_ADDR']
-            Captcha.generateimage(session["registerip"])
+            Captcha.GenCaptcha(session["registerip"])
         else:
             session["registerip"] = request.environ['HTTP_X_FORWARDED_FOR']
-            Captcha.generateimage(session["registerip"])
+            Captcha.GenCaptcha(session["registerip"])
         form = LoginForm()
         if form.validate_on_submit():
             if form.reloadcode.data == True:
-                Captcha.regenerateimage(session["registerip"])
+                Captcha.RegenCaptcha(session["registerip"])
             if form.login.data == True:
                 email = form.email.data
                 password = form.password.data
@@ -314,12 +312,12 @@ def FlaskpApp():
                             password = Password.Generate(email, password)
                             if email not in accounts:
                                 flash(MSGList.WrongPasswordOrEmail.value, "alert-error")
-                                Captcha.generateimage(session["registerip"])
+                                Captcha.GenImage(session["registerip"])
                             else:
                                 account = accounts[email]
                                 if not password == account["password"]:
                                     flash(MSGList.WrongPasswordOrEmail.value, "alert-error")
-                                    Captcha.generateimage(session["registerip"])
+                                    Captcha.GenCaptcha(session["registerip"])
                                 else:
                                     session["email"] = account['email']
                                     session['firstname'] = account['firstname']
@@ -338,10 +336,10 @@ def FlaskpApp():
                                     return redirect(url_for('upanel'))
                         else:
                             flash(MSGList.WrongEmailFormat.value, "alert-error")
-                            Captcha.regenerateimage(session["registerip"])
+                            Captcha.RegenCaptcha(session["registerip"])
                     else:
                         flash(MSGList.WrongCode.value, "alert-error")
-                        Captcha.regenerateimage(session["registerip"])
+                        Captcha.RegenCaptcha(session["registerip"])
         else:
             if "email" in session:
                  return redirect(url_for('upanel'))
@@ -532,6 +530,7 @@ def FlaskpApp():
     # paswword recovery code confrim
     @app.route("/recovery-code", methods=['POST', 'GET'])
     def recovery_code():
+        #print(recovery_codes[session["phonenumberrecovery"]]['code'])
         form = RecoveryForm()
         if form.submit.data == True:
             code = form.code.data
@@ -586,14 +585,14 @@ def FlaskpApp():
     def register(): 
         if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
             session["registerip"] = request.environ['REMOTE_ADDR']
-            Captcha.generateimage(session["registerip"])
+            Captcha.GenCaptcha(session["registerip"])
         else:
             session["registerip"] = request.environ['HTTP_X_FORWARDED_FOR']
-            Captcha.generateimage(session["registerip"])
+            Captcha.GenCaptcha(session["registerip"])
         form = RegisterForm()
         if form.validate_on_submit():
             if form.reloadcode.data == True:
-                Captcha.regenerateimage(session["registerip"])
+                Captcha.RegenCaptcha(session["registerip"])
             elif form.register.data == True:
                 firstname = form.firstname.data
                 lastname = form.lastname.data
@@ -623,7 +622,7 @@ def FlaskpApp():
                                         except:
                                             LOG.error(Console.RegisterFailed.value, "alert-error")
                                     else:
-                                        Captcha.regenerateimage(session["registerip"])
+                                        Captcha.RegenCaptcha(session["registerip"])
                                         flash(MSGList.WrongCode.value, "alert-error")
                                 else:
                                     flash(MSGList.UsernameExist.value, "alert-error")
@@ -641,7 +640,7 @@ def FlaskpApp():
     # forum page
     @app.route("/forum", methods=['POST', 'GET'])
     def forum():
-        return render_template('forum.html', storeitems=storeitems)
+        return render_template('forum.html')
 
     @app.route('/request/')
     def send_request():
@@ -729,7 +728,6 @@ def FlaskpApp():
     def logout():
         try:
             LOG.debug(Console.Logout.value.format(email=session["email"], ip=session['registerip']))
-            #leave_room(Config.read()['economy']['room'])
             session.clear()
             return redirect(url_for('login'))
         except:
