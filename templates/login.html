@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block content %}
-<div class="LRBG">
-   <div class="overbg ">
+<div class="LRBG"  style="background-image: url('static/img/landing.png');">
+   <div class="overbg">
       <div class="frame ">
          <p class="frame_title text-center">LOG IN</p>
          <form action="" method="POST">
@@ -10,7 +10,7 @@
             {{ form.password() }}
             <div class="captchacodeframe">
                {{ form.code() }}
-               <img style="filter: invert(1);" src="/static/captcha/{{session.registerip}}.png">
+               <img src="/static/captcha/{{session.registerip}}.png">
                {{ form.reloadcode() }}
             </div>
             {{ form.login() }}
@@ -29,5 +29,4 @@
       </div>
    </div>
 </div>
-
 {% endblock content %}

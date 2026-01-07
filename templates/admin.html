@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 {% block content %}
 <link rel="stylesheet" media="all" href="{{ url_for('static', filename='css/admin.css')}}"/>
+<script src="{{ url_for('static', filename='js/tabs.js')}}" defer></script>
 <div class="container">
   <div class="ucontent">
     <div class="ptabs">
@@ -12,6 +13,7 @@
       <button class="tablinks" onclick="openCity(event, 'sms')">Send Message</button>
       <button class="tablinks" onclick="openCity(event, 'core')">Core</button>
       <button class="tablinks" onclick="openCity(event, 'theme')">theme</button>
+      <button class="tablinks" onclick="openCity(event, 'report')">report</button>
     </div>
     <div id="orders" class="tabcontent">
       {% if history|length %}
@@ -49,7 +51,7 @@
         {{ form.position}}
         {{ form.title() }}
         {{ form.detail() }}
-        {{ form.file() }}
+        {{ form.ArticleImage() }}
         {{ form.post() }}
       </form>
     </div>
@@ -62,7 +64,8 @@
         {{ form.ItemVersion() }}
         {{ form.ItemID() }}
         {{ form.ItemDetail() }}
-        {{ form.file() }}
+        {{ form.MaxSkill() }}
+        {{ form.ItemImage() }}
         {{ form.ItemSubmit() }}
       </form>
     </div>
@@ -82,7 +85,17 @@
         {{ form.MainColorHover.label }}
         {{ form.MainColorHover() }}
         <br>
+        {{ form.Background.label }}
+        {{ form.Background() }}
+        <br>
         {{ form.SaveColor()}}
+      </form>
+    </div>
+        <div id="report" class="tabcontent">
+      <form action="" method="post" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        {{ form.start.label }}
+        {{ form.start(type="datetime-local") }}
       </form>
     </div>
   </div>

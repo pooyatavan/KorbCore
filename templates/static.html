@@ -7,8 +7,10 @@
       <div class="tag glass-blur r-border margin-mid">this post published by {{ article['by'] }} in {{ article['newsdate'] }}</div>
     </div>
   </div>
-  <div class="article-content no-overflow">
-    {{ article['article'] | safe }}
+  <div class="container margin-mid ">
+    <div class="article-content no-overflow r-border">
+      {{ article['article'] | safe }}
+    </div>
   </div>
 </div>
 {% endblock content %}

@@ -1,18 +1,16 @@
 {% extends "layout.html" %} {% block content %}
     <div class="container no-overflow margin-mid">
-        <div class="blog-cont margin-mid no-overflow">
-            {% for blog in blogs %}
-                {% if blogs[blog]['type'] == "blog" %}
-                    <div class="blogs no-overflow">
-                        <img src="/static/img/content/{{ blogs[blog]['image'] }}.jpg"/>
-                        <div class="blog-detail">
-                            <h1>{{ blogs[blog]['title'] }}</h1>
-                            <p>{{ blogs[blog]['short'] }}...</p>
-                            <a href="/blogpost/{{ blogs[blog]['link'] }}">Read More</a>
-                        </div>
+        {% for blog in blogs %}
+            {% if blogs[blog]['type'] == "blog" %}
+                <div class="blogs no-overflow">
+                    <img src="/static/img/content/{{ blogs[blog]['image'] }}.jpg"/>
+                    <div class="blog-detail">
+                        <h1>{{ blogs[blog]['title'] }}</h1>
+                        <p>{{ blogs[blog]['short'] }}...</p>
+                        <a href="/blogpost/{{ blogs[blog]['link'] }}">Read More</a>
                     </div>
-                {% endif %}
-            {% endfor %}
-        </div>
+                </div>
+            {% endif %}
+        {% endfor %}
     </div>
 {% endblock content %}

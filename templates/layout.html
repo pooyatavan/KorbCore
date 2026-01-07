@@ -1,10 +1,9 @@
 ﻿<html>
   <head>
     <link rel="stylesheet" media="all" href="{{ url_for('static', filename='css/style.css')}}"/>
-    <link rel="stylesheet" media="all" href="{{ url_for('static', filename='css/font-awesome.css')}}"/>
     <link rel="stylesheet" media="all" href="{{ url_for('static', filename='js/jquery.js')}}"/>
-    <link rel="stylesheet" href="path/to/font-awesome/css/font-awesome.min.css">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico')}}"/>
+    
     {% if request.path in navlinks %}
       <title>StormWoW | {{ navlinks[request.path]['title'] }}</title>
     {% endif %}
@@ -57,17 +56,19 @@
       </div>
     </div>
     {% block content %}{% endblock %}
-    <div class="footer blur">
-      <div class="all">©2025 Korb Entertainment, Inc. All  trademarks referenced herein are the properties of their respective owners</div>     
-      <div class="dropup">
-        <button class="dropbtn"><i class="fa fa-globe" aria-hidden="true"> {{ session['language'] }}</i></button>
-        <div class="dropup-content" role="menu" aria-hidden="true">
-          {% for row in language %}
-            <a href="#">{{ language[row]['name'] }}</a>
-          {% endfor %}
+    <footer>
+      <div class="footer">
+        <div class="row">
+          <ul>
+            <li><a href="#">Contact us</a></li>
+            <li><a href="#">Our Services</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms & Conditions</a></li>
+            <li><a href="#">Career</a></li>
+          </ul>
         </div>
-        
+        <div class="row">INFERNO Copyright © 2021 Inferno - All rights reserved || Designed By: Mahesh </div>
       </div>
-    </div>
-    <script src="{{ url_for('static', filename='js/tabs.js')}}"></script>
+    </footer>
+  </body>
 </html>

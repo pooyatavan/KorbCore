@@ -1,11 +1,10 @@
 {% extends "layout.html" %}
 {% block content %}
-<div class="container">
-   <div class="frame">
-      <div class="login">
+<div class="LRBG" style="background-image: url('static/img/content/login.jpeg');">
+   <div class="overbg">
+      <div class="frame">
+         <p class="frame_title">Reset password</p>
          <form action="" method="post">
-            <a class="frame_title">Reset password</a>
-            <a class="detail">enter your code</a>
             {{ form.hidden_tag() }}
             {{ form.code() }}
             {{ form.submit() }}

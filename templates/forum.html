@@ -1,5 +1,53 @@
 {% extends "layout.html" %}
 {% block content %}
-    <div class="container">
-    </div>
+<style>
+        :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --muted:#9aa4b2;
+      --glass: rgba(255,255,255,0.03);
+      --radius:12px;
+      --gap:1rem;
+      font-family: Arial, sans-serif;
+        }
+
+    .grid{
+      width:100%;
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap:var(--gap);
+    }
+
+    .card{
+      overflow: hidden;
+      background-color: #1b1b1b;
+      border-radius:var(--radius);
+      min-height:180px;
+      transition:transform .22s, box-shadow .22s;
+      cursor: pointer;
+    }
+
+    .card:hover{
+      transform:translateY(-6px); 
+      box-shadow:0 16px 32px rgba(2,6,23,0.7);
+    }
+  </style>
+</style>
+
+<div id="grid" class="grid">
+    {% for item in storeitems %}
+        <div class="card" onclick="location.href='store_item/{{ item.id }}'">
+            <div class="item-image">
+                <img src="/static/img/store/{{ item.image }}.jpg"/>
+            </div>
+            <div class="item_container">
+                <div class="item-title"><h1>{{ item.title }}</h1></div>
+                <div class="item-detail"><p>{{ item.detail }}</p></div>
+                <div class="price">${{ item.token }}</div>
+                <div class="version">v {{ item.version }} </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
 {% endblock content %}
