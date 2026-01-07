@@ -23,7 +23,7 @@ from modules.RecruitFreind import RF
 from modules.skill import SkillStructure
 from modules.tools import key, GetDate, Check, IpFormatCheck, restart, email_check
 from modules.translate import gtranslate
-from modules.theme import ChangeCSS, GetColors
+from modules.theme import ChangeCSS, GetColors, ChangePNGoverlay
 
 app = Flask(__name__, static_folder='../static', template_folder='../templates')
 ckeditor = CKEditor()
@@ -234,10 +234,10 @@ def FlaskpApp():
                     MainColor = form.MainColor.data
                     MainColorHover = form.MainColorHover.data
                     Background = form.Background.data
-                    ChangeCSS(6, MainColor)
-                    ChangeCSS(7, MainColorHover)
-                    ChangeCSS(9, Background)
-                    LOG.debug(Console.Theme.value.format(username=session['username']))
+                    ChangeCSS(6, MainColor, username=session['username'])
+                    ChangeCSS(7, MainColorHover, username=session['username'])
+                    ChangeCSS(9, Background, username=session['username'])
+                    ChangePNGoverlay(MainColor)
                 else:
                     form.MainColor.data = GetColors(6)
                     form.MainColorHover.data = GetColors(7)
@@ -287,6 +287,7 @@ def FlaskpApp():
             return render_template('message.html', titlemsg=MSGList.PageNotFoundTitle.value, detailmsg=MSGList.PageNotFoundDetail.value, image="blueprint/404")
         else:
             return render_template('blogpost.html', article=blogs[blogpostname], form=form)
+        
     # login page
     @app.route("/login", methods=['POST', 'GET'])
     def login():
@@ -706,17 +707,17 @@ def FlaskpApp():
     # Blueprints
     @app.errorhandler(404)
     def page_not_found(e):
-        return render_template('message.html', titlemsg=MSGList.PageNotFoundTitle.value, detailmsg=MSGList.PageNotFoundDetail.value, image="blueprint/404"), 404
+        return render_template('message.html', titlemsg=MSGList.PageNotFoundTitle.value, detailmsg=MSGList.PageNotFoundDetail.value, image="404"), 404
     app.register_error_handler(404, page_not_found)
 
     @app.errorhandler(403)
     def page_not_found(e):
-        return render_template('message.html', titlemsg=MSGList.PageNotFoundTitle.value, detailmsg=MSGList.PageNotFoundDetail.value, image="blueprint/403"), 403
+        return render_template('message.html', titlemsg=MSGList.PageNotFoundTitle.value, detailmsg=MSGList.PageNotFoundDetail.value, image="403"), 403
     app.register_error_handler(403, page_not_found)
 
     @app.errorhandler(500)
     def page_not_found(e):
-        return render_template('message.html', titlemsg=MSGList.Warningtitle.value, detailmsg=MSGList.WarningDetail.value, image="blueprint/500"), 500
+        return render_template('message.html', titlemsg=MSGList.Warningtitle.value, detailmsg=MSGList.WarningDetail.value, image="500"), 500
     app.register_error_handler(500, page_not_found)
 
     @app.before_request
@@ -732,52 +733,3 @@ def FlaskpApp():
             return redirect(url_for('login'))
         except:
              LOG.error(Console.ErrorSocket.value)
-    
-def FlaskSetup():
-    @app.route("/", methods=['GET', 'POST'])
-    @app.route('/setup', methods=['GET', 'POST'])
-    def setup():
-        form = SetupForm()
-        if form.validate_on_submit():
-            cmsservername = form.CMSServerName.data
-            cmsserverip = form.CMSServerIP.data
-            cmsport = form.CMSPort.data
-
-            sqlip = form.SQLServerIP.data
-            sqlport = form.SQLServerPORT.data
-            sqlusername = form.SQLUsername.data
-            sqlpassword = form.SQLPaswword.data
-
-            coresqlip = form.CoreSQLServerIP.data
-            coresqlport = form.CoreSQLServerPORT.data
-            coresqlusername = form.CoreSQLUsername.data
-            coresqlpassword = form.CoreSQLPaswword.data
-            if cmsservername or cmsserverip or cmsport or sqlip or sqlport or sqlusername or sqlpassword or coresqlip or coresqlport or coresqlusername or coresqlpassword == "":
-                flash(MSGList.EmptyFields.value, "alert-warning")
-            else:
-                ips = [cmsserverip, sqlip, coresqlip]
-                for ip in ips:
-                    if IpFormatCheck(ip) == True:
-                        Config.write('core', 'servername', cmsservername)
-                        Config.write('core', 'ip', cmsserverip)
-                        Config.write('core', 'port', cmsport)
-                        Config.write('core', 'setup', 'disable')
-                        restart()
-                    else:
-                        flash(MSGList.WrongIPAddressFormat.value, "alert-error")
-        return render_template('setup.html', form=form)
-    
-    @app.errorhandler(404)
-    def page_not_found(e):
-        return redirect(url_for('setup'))
-    app.register_error_handler(404, page_not_found)
-
-    @app.errorhandler(403)
-    def page_not_found(e):
-        return redirect(url_for('setup'))
-    app.register_error_handler(403, page_not_found)
-
-    @app.errorhandler(500)
-    def page_not_found(e):
-        return redirect(url_for('setup'))
-    app.register_error_handler(500, page_not_found)

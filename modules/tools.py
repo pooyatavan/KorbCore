@@ -1,4 +1,4 @@
-import os, threading, sys, socket, datetime, time, random
+import os, threading, sys, socket, datetime, time, random, re
 from re import findall
 from subprocess import Popen, PIPE
 from string import ascii_uppercase
@@ -9,6 +9,8 @@ from modules.log import LOG
 from modules.strings import Console
 
 rooms = {}
+recovery_codes = {}
+regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
 
 def key():
     return str(os.urandom(12).hex)
@@ -79,3 +81,9 @@ def RemoveBOM():
         if data.startswith(BOM):
             path.write_bytes(data[len(BOM):])
             LOG.info(Console.Boom.value.format(path=path))
+
+def email_check(email):
+    if(re.fullmatch(regex, email)):
+        return True
+    else:
+        return False
